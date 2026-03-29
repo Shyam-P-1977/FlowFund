@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard – FlowFund</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .app-layout {
+            background: url('assets/employee-bg.png') no-repeat center center/cover fixed;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        .main-content {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .card,
+        .stat-card {
+            background: rgba(30, 41, 59, 0.8) !important;
+            backdrop-filter: blur(10px);
+        }
+
+
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .si-blue {
+            background: rgba(99, 102, 241, .15);
+        }
+
+        .si-yellow {
+            background: rgba(234, 179, 8, .15);
+        }
+
+        .si-green {
+            background: rgba(34, 197, 94, .15);
+        }
+
+        .si-red {
+            background: rgba(239, 68, 68, .15);
+        }
+
+        .stat-val {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-lbl {
+            font-size: .75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .expense-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-weight: 500;
+        }
+
+        .eb-pending {
+            background: rgba(234, 179, 8, .15);
+            color: #eab308;
+        }
+
+        .eb-approved {
+            background: rgba(34, 197, 94, .15);
+            color: #22c55e;
+        }
+
+        .eb-rejected {
+            background: rgba(239, 68, 68, .15);
+            color: #ef4444;
+        }
+
+        .eb-draft {
+            background: rgba(148, 163, 184, .15);
+            color: #94a3b8;
+        }
+
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-pill {
+            padding: 8px 18px;
+            border-radius: 7px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: .875rem;
+            transition: all .2s;
+        }
+
+        .tab-pill.active {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .ocr-result {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: .75rem;
+        }
+
+        .ocr-field {
+            display: flex;
+            justify-content: space-between;
+            font-size: .875rem;
+            padding: .25rem 0;
+        }
+
+        .ocr-label {
+            color: var(--text-muted);
+        }
+
+        .ocr-val {
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo"><img src="logo.jpeg" alt="FlowFund Logo"
+                        style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;"></div>
+                <span class="sidebar-brand">FlowFund</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Employee</div>
+                    <a href="#" class="nav-item active" onclick="switchTab('expenses',this)">
+                        <span class="nav-icon">📊</span> My Expenses
+                    </a>
+                    <a href="#" class="nav-item" onclick="switchTab('submit',this)">
+                        <span class="nav-icon">🧾</span> Submit Expense
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="user-avatar" id="userAvatar">E</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Employee</div>
+                        <div class="user-role">Employee</div>
+                    </div>
+                </div>
+                <a href="#" class="nav-item text-danger" id="logoutBtn" style="margin-top:8px;">
+                    <span class="nav-icon">🚪</span> Logout
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+                    <h1 id="pageTitle">My Expenses</h1>
+                    <div class="header-subtitle">Track your expense reimbursements</div>
+                </div>
+                <button class="btn btn-primary" onclick="switchTab('submit', null)">+ New Expense</button>
+            </header>
+
+            <div class="content-body">
+
+
+                <!-- Stats -->
+                <div class="stat-row">
+                    <div class="stat-card">
+                        <div class="stat-icon-box si-blue">📄</div>
+                        <div>
+                            <div class="stat-val" id="statTotal">—</div>
+                            <div class="stat-lbl">Total Submitted</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-box si-yellow">⏳</div>
+                        <div>
+                            <div class="stat-val" id="statPending">—</div>
+                            <div class="stat-lbl">Pending Approval</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-box si-green">✅</div>
+                        <div>
+                            <div class="stat-val" id="statApproved">—</div>
+                            <div class="stat-lbl">Approved</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-box si-red">❌</div>
+                        <div>
+                            <div class="stat-val" id="statRejected">—</div>
+                            <div class="stat-lbl">Rejected</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tab-bar">
+                    <button class="tab-pill active" id="tab-btn-expenses" onclick="switchTab('expenses',this)">📋 My
+                        Expenses</button>
+                    <button class="tab-pill" id="tab-btn-submit" onclick="switchTab('submit',this)">🧾 Submit
+                        New</button>
+                </div>
+
+                <!-- EXPENSES TAB -->
+                <div class="tab-panel active" id="panel-expenses">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                        <h3 style="font-size:1rem;font-weight:600;">My Expense History</h3>
+                        <select id="statusFilter" class="form-control" style="width:auto;" onchange="filterExpenses()">
+                            <option value="">All Status</option>
+                            <option value="draft">Draft</option>
+                            <option value="waiting_approval">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="card">
+                        <div class="card-body" style="padding:0;">
+                            <div id="expensesTableContainer">
+                                <div class="page-loader">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUBMIT TAB -->
+                <div class="tab-panel" id="panel-submit">
+                    <div class="card" style="max-width:760px;margin:0 auto;">
+                        <div class="card-header">
+                            <h3>🧾 Submit New Expense</h3>
+                            <span class="text-sm text-muted">Upload a receipt for automatic OCR extraction</span>
+                        </div>
+                        <div class="card-body">
+                            <!-- OCR Upload -->
+                            <div style="background:var(--bg-tertiary);border:2px dashed var(--border-secondary);border-radius:10px;padding:1.5rem;text-align:center;margin-bottom:1.5rem;cursor:pointer;"
+                                onclick="document.getElementById('ocrFile').click()" id="ocrDropzone">
+                                <div style="font-size:2.5rem;margin-bottom:.5rem;">📸</div>
+                                <div class="fw-600">Upload Receipt for OCR</div>
+                                <div class="text-sm text-muted mt-1">Drag & drop or click to upload. PNG, JPG, PDF
+                                    supported.</div>
+                                <input type="file" id="ocrFile" accept="image/*,.pdf" style="display:none;"
+                                    onchange="processOCR(this)">
+                            </div>
+                            <div id="ocrResultBox" style="display:none;" class="ocr-result">
+                                <div
+                                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+                                    <span class="fw-600 text-sm">🔍 OCR Extracted Data</span>
+                                    <span class="text-xs text-muted">Review and adjust below</span>
+                                </div>
+                                <div id="ocrFields"></div>
+                            </div>
+
+                            <form id="expenseForm" style="margin-top:1.5rem;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="expAmount">Amount *</label>
+                                        <input type="number" id="expAmount" class="form-control" placeholder="0.00"
+                                            step="0.01" min="0" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="expCurrency">Currency *</label>
+                                        <select id="expCurrency" class="form-control" required>
+                                            <option value="USD">USD</option>
+                                            <option value="EUR">EUR</option>
+                                            <option value="GBP">GBP</option>
+                                            <option value="INR">INR</option>
+                                            <option value="CAD">CAD</option>
+                                            <option value="AUD">AUD</option>
+                                            <option value="SGD">SGD</option>
+                                            <option value="JPY">JPY</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="expCategory">Category *</label>
+                                        <select id="expCategory" class="form-control" required>
+                                            <option value="">Select category</option>
+                                            <option value="Travel">✈️ Travel</option>
+                                            <option value="Meals">🍽️ Meals &amp; Entertainment</option>
+                                            <option value="Accommodation">🏨 Accommodation</option>
+                                            <option value="Office Supplies">🖊️ Office Supplies</option>
+                                            <option value="Software">💻 Software &amp; Subscriptions</option>
+                                            <option value="Equipment">🔧 Equipment</option>
+                                            <option value="Marketing">📣 Marketing</option>
+                                            <option value="Training">📚 Training &amp; Courses</option>
+                                            <option value="Other">📦 Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="expDate">Expense Date *</label>
+                                        <input type="date" id="expDate" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="expPaidBy">Paid By *</label>
+                                        <select id="expPaidBy" class="form-control">
+                                            <option value="cash">💵 Cash</option>
+                                            <option value="card">💳 Card</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="expDesc">Description</label>
+                                        <input type="text" id="expDesc" class="form-control"
+                                            placeholder="Brief description">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="expRemarks">Remarks / Notes</label>
+                                    <textarea id="expRemarks" class="form-control" rows="2"
+                                        placeholder="Any additional context..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="expReceipt">Attach Receipt</label>
+                                    <input type="file" id="expReceipt" class="form-control" accept="image/*,.pdf">
+                                </div>
+
+                                <div style="display:flex;gap:.75rem;margin-top:1rem;">
+                                    <button type="button" id="btnDraft" onclick="submitExpense(false)"
+                                        class="btn btn-outline flex-1">
+                                        💾 Save as Draft
+                                    </button>
+                                    <button type="button" id="btnSubmit" onclick="submitExpense(true)"
+                                        class="btn btn-primary flex-1">
+                                        🚀 Submit for Approval
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Expense Detail Modal -->
+    <div class="modal-backdrop" id="detailModal">
+        <div class="modal" style="max-width:640px;">
+            <div class="modal-header">
+                <h3>Expense Details &amp; Approval Trail</h3>
+                <button class="modal-close" onclick="UI.hideModal('detailModal')">✕</button>
+            </div>
+            <div class="modal-body" id="detailContent"></div>
+            <div class="modal-footer" id="detailFooter">
+                <button class="btn btn-outline" onclick="UI.hideModal('detailModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        if (!UI.requireAuth()) throw new Error('Not auth');
+        const user = API.getUser();
+        if (!user) { window.location.href = 'login.html'; throw new Error(); }
+        if (user.role === 'admin') { window.location.href = 'admin_dashboard.html'; throw new Error(); }
+        if (user.role === 'manager') { window.location.href = 'manager_dashboard.html'; throw new Error(); }
+
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userAvatar').textContent = user.name[0].toUpperCase();
+        document.getElementById('logoutBtn').addEventListener('click', e => { e.preventDefault(); API.clearAuth(); window.location.href = 'login.html'; });
+
+        // Set today as default date
+        document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
+
+        let allExpenses = [];
+
+        function switchTab(tab, el) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            document.getElementById('panel-' + tab).classList.add('active');
+            const btn = document.getElementById('tab-btn-' + tab);
+            if (btn) btn.classList.add('active');
+            if (el) el.classList.add('active');
+            document.getElementById('pageTitle').textContent = tab === 'submit' ? 'Submit Expense' : 'My Expenses';
+            if (tab === 'expenses') loadExpenses();
+        }
+
+        function statusBadge(s) {
+            const map = { draft: 'eb-draft', waiting_approval: 'eb-pending', approved: 'eb-approved', rejected: 'eb-rejected' };
+            const labels = { draft: 'Draft', waiting_approval: '⏳ Pending', approved: '✅ Approved', rejected: '❌ Rejected' };
+            return `<span class="expense-badge ${map[s] || 'eb-draft'}">${labels[s] || s}</span>`;
+        }
+
+        // ── LOAD EXPENSES ──────────────────────────────────────
+        async function loadExpenses() {
+            try {
+                const d = await API.listExpenses();
+                allExpenses = d.expenses || [];
+                updateStats();
+                filterExpenses();
+            } catch (e) { }
+        }
+
+        function updateStats() {
+            document.getElementById('statTotal').textContent = allExpenses.filter(e => e.status !== 'draft').length;
+            document.getElementById('statPending').textContent = allExpenses.filter(e => e.status === 'waiting_approval').length;
+            document.getElementById('statApproved').textContent = allExpenses.filter(e => e.status === 'approved').length;
+            document.getElementById('statRejected').textContent = allExpenses.filter(e => e.status === 'rejected').length;
+        }
+
+        function filterExpenses() {
+            const filter = document.getElementById('statusFilter')?.value || '';
+            const list = filter ? allExpenses.filter(e => e.status === filter) : allExpenses;
+            renderExpenses(list);
+        }
+
+        function renderExpenses(list) {
+            const c = document.getElementById('expensesTableContainer');
+            if (!list.length) {
+                c.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>No expenses yet</h3><p>Submit your first expense to get started.</p><button class="btn btn-primary btn-sm mt-2" onclick="switchTab('submit',null)">+ New Expense</button></div>`;
+                return;
+            }
+            c.innerHTML = `<table class="data-table"><thead><tr>
+        <th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Status</th><th>Actions</th>
+    </tr></thead><tbody>${list.map(e => `
+        <tr>
+            <td class="text-sm text-muted">${UI.formatDate(e.expense_date)}</td>
+            <td>${e.description || '—'}</td>
+            <td><span class="badge badge-role">${e.category}</span></td>
+            <td class="fw-600">${UI.formatCurrency(e.amount, e.currency)}</td>
+            <td>${statusBadge(e.status)}</td>
+            <td><div class="d-flex gap-1">
+                <button class="btn btn-ghost btn-sm" onclick="viewDetail(${e.id})">🔍 Trail</button>
+                ${e.status === 'draft' ? `<button class="btn btn-primary btn-sm" onclick="submitDraft(${e.id})">Submit</button>` : ''}
+            </div></td>
+        </tr>`).join('')}</tbody></table>`;
+        }
+
+        // ── OCR ────────────────────────────────────────────────
+        async function processOCR(input) {
+            if (!input.files || !input.files[0]) return;
+            const dropzone = document.getElementById('ocrDropzone');
+            dropzone.innerHTML = `<div class="spinner" style="margin:0 auto;"></div><div class="text-sm text-muted mt-2">Processing receipt with OCR…</div>`;
+            try {
+                const formData = new FormData();
+                formData.append('receipt', input.files[0]);
+                const d = await API.processOCR(formData);
+                const ocr = d.ocr_result || {};
+
+                if (ocr.amount) document.getElementById('expAmount').value = ocr.amount;
+                if (ocr.date) document.getElementById('expDate').value = ocr.date;
+                if (ocr.currency) {
+                    const sel = document.getElementById('expCurrency');
+                    for (let o of sel.options) if (o.value === ocr.currency) { sel.value = ocr.currency; break; }
+                }
+
+                const fieldsHtml = Object.entries({
+                    Amount: ocr.amount || '—',
+                    Date: ocr.date || '—',
+                    Currency: ocr.currency || '—',
+                    Merchant: ocr.merchant || '—',
+                    Total: ocr.total || '—',
+                }).map(([k, v]) => `<div class="ocr-field"><span class="ocr-label">${k}</span><span class="ocr-val">${v}</span></div>`).join('');
+
+                document.getElementById('ocrFields').innerHTML = fieldsHtml;
+                document.getElementById('ocrResultBox').style.display = 'block';
+                dropzone.innerHTML = `<div style="font-size:2rem;">✅</div><div class="fw-600 text-sm">Receipt processed! Fields auto-filled.</div><div class="text-xs text-muted mt-1">Click to upload a different receipt</div><input type="file" id="ocrFile" accept="image/*,.pdf" style="display:none;" onchange="processOCR(this)">`;
+                document.getElementById('expReceipt').files = input.files;
+                UI.success('OCR complete – fields have been filled!');
+            } catch (err) {
+                dropzone.innerHTML = `<div style="font-size:2rem;">📸</div><div class="fw-600">Upload Receipt for OCR</div><div class="text-sm text-muted mt-1">Drag & drop or click to upload</div><input type="file" id="ocrFile" accept="image/*,.pdf" style="display:none;" onchange="processOCR(this)">`;
+                UI.warning('OCR processing failed. Please fill fields manually.');
+            }
+        }
+
+        ['ocrDropzone'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('dragover', e => { e.preventDefault(); el.style.borderColor = 'var(--primary-500)'; });
+                el.addEventListener('dragleave', () => el.style.borderColor = 'var(--border-secondary)');
+                el.addEventListener('drop', e => { e.preventDefault(); el.style.borderColor = 'var(--border-secondary)'; const fi = document.getElementById('ocrFile'); fi.files = e.dataTransfer.files; processOCR(fi); });
+            }
+        });
+
+        // ── SUBMIT EXPENSE ─────────────────────────────────────
+        async function submitExpense(submitForApproval) {
+            const amount = document.getElementById('expAmount').value;
+            const currency = document.getElementById('expCurrency').value;
+            const category = document.getElementById('expCategory').value;
+            const expDate = document.getElementById('expDate').value;
+            const paidBy = document.getElementById('expPaidBy').value;
+
+            if (!amount || !category || !expDate) { UI.warning('Amount, category, and date are required'); return; }
+
+            const btn = submitForApproval ? document.getElementById('btnSubmit') : document.getElementById('btnDraft');
+            UI.setButtonLoading(btn, true);
+
+            try {
+                const formData = new FormData();
+                formData.append('amount', amount);
+                formData.append('currency', currency);
+                formData.append('category', category);
+                formData.append('expense_date', expDate);
+                formData.append('paid_by', paidBy);
+                formData.append('description', document.getElementById('expDesc').value);
+                formData.append('remarks', document.getElementById('expRemarks').value);
+                formData.append('submit', submitForApproval ? 'true' : 'false');
+                const receipt = document.getElementById('expReceipt');
+                if (receipt.files && receipt.files[0]) formData.append('receipt', receipt.files[0]);
+
+                const d = await API.createExpense(formData);
+                UI.success(submitForApproval
+                    ? `Expense submitted for approval! ${d.converted_amount && d.company_currency ? `Converted: ${UI.formatCurrency(d.converted_amount, d.company_currency)}` : ''} 🚀`
+                    : 'Saved as draft 💾');
+
+                // Reset form
+                document.getElementById('expenseForm').reset();
+                document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('ocrResultBox').style.display = 'none';
+
+                switchTab('expenses', null);
+                await loadExpenses();
+            } catch (err) { UI.error(err.message); }
+            finally { UI.setButtonLoading(btn, false); }
+        }
+
+        // ── SUBMIT DRAFT ───────────────────────────────────────
+        async function submitDraft(id) {
+            if (!confirm('Submit this draft for manager approval?')) return;
+            try {
+                await API.submitExpense(id);
+                UI.success('Submitted for approval! 🚀');
+                await loadExpenses();
+            } catch (e) { UI.error(e.message); }
+        }
+
+        // ── VIEW DETAIL + TRAIL ────────────────────────────────
+        async function viewDetail(id) {
+            UI.showModal('detailModal');
+            document.getElementById('detailContent').innerHTML = '<div class="page-loader"><div class="spinner"></div></div>';
+            document.getElementById('detailFooter').innerHTML = '<button class="btn btn-outline" onclick="UI.hideModal(\'detailModal\')">Close</button>';
+            try {
+                const d = await API.getExpense(id);
+                const e = d.expense;
+                const hist = e.approval_history || [];
+
+                // Show submit button if it's a draft
+                if (e.status === 'draft') {
+                    document.getElementById('detailFooter').innerHTML = `
+                <button class="btn btn-outline" onclick="UI.hideModal('detailModal')">Close</button>
+                <button class="btn btn-primary" onclick="UI.hideModal('detailModal'); submitDraft(${e.id})">🚀 Submit for Approval</button>`;
+                }
+
+                document.getElementById('detailContent').innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+                <div><div class="text-xs text-muted mb-1">Status</div>
+                    ${statusBadge(e.status)}</div>
+                <div><div class="text-xs text-muted mb-1">Amount</div>
+                    <div class="fw-600">${UI.formatCurrency(e.amount, e.currency)}</div></div>
+                <div><div class="text-xs text-muted mb-1">Converted (Company)</div>
+                    <div>${e.converted_amount ? UI.formatCurrency(e.converted_amount, e.company_currency) : '—'}</div></div>
+                <div><div class="text-xs text-muted mb-1">Category</div><div>${e.category}</div></div>
+                <div><div class="text-xs text-muted mb-1">Date</div><div>${UI.formatDate(e.expense_date)}</div></div>
+                <div><div class="text-xs text-muted mb-1">Paid By</div><div style="text-transform:capitalize;">${e.paid_by}</div></div>
+            </div>
+            ${e.description ? `<p class="text-sm mb-2"><b>Description:</b> ${e.description}</p>` : ''}
+            ${e.remarks ? `<p class="text-sm mb-2"><b>Remarks:</b> ${e.remarks}</p>` : ''}
+            <div style="border-top:1px solid var(--border-secondary);padding-top:1rem;margin-top:1rem;">
+                <div class="text-xs text-muted mb-2" style="text-transform:uppercase;letter-spacing:.06em;font-weight:600;">
+                    Approval Trail ${hist.length ? `(${hist.length} step${hist.length > 1 ? 's' : ''})` : ''}
+                </div>
+                ${hist.length ? `
+                    <div style="position:relative;">
+                        ${hist.map((h, i) => `
+                        <div style="display:flex;gap:.75rem;align-items:flex-start;margin-bottom:${i < hist.length - 1 ? '.75rem' : '0'};padding:.75rem;background:var(--bg-tertiary);border-radius:8px;border-left:3px solid ${h.status === 'approved' ? '#22c55e' : h.status === 'rejected' ? '#ef4444' : '#eab308'};">
+                            <div style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:600;">${h.sequence_order}</div>
+                            <div style="flex:1;">
+                                <div class="fw-600 text-sm">${h.approver_name}</div>
+                                <div class="mt-1">${statusBadge(h.status)} ${h.comments ? `<span class="text-xs text-muted ml-1">"${h.comments}"</span>` : ''}</div>
+                            </div>
+                        </div>`).join('')}
+                    </div>
+                ` : '<p class="text-sm text-muted">Your expense hasn\'t entered the approval chain yet. Submit it to start the process.</p>'}
+            </div>`;
+            } catch (err) { document.getElementById('detailContent').innerHTML = `<p class="text-danger">${err.message}</p>`; }
+        }
+
+        // Init
+        loadExpenses();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Submit a new expense claim with receipt OCR scanning and currency conversion.">
+    <title>New Expense – FlowFund</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .expense-form-card {
+            max-width: 800px;
+        }
+
+        .ocr-section {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+
+        .ocr-section h3 {
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .ocr-result {
+            background: var(--bg-card);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            margin-top: var(--space-md);
+            display: none;
+        }
+
+        .ocr-result.visible {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .ocr-result .ocr-field {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-secondary);
+            font-size: var(--font-size-sm);
+        }
+
+        .ocr-result .ocr-field:last-child {
+            border-bottom: none;
+        }
+
+        .ocr-result .ocr-field .label {
+            color: var(--text-secondary);
+        }
+
+        .ocr-result .ocr-field .value {
+            font-weight: 600;
+            color: var(--accent-400);
+        }
+
+        .conversion-preview {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            margin-top: var(--space-sm);
+            font-size: var(--font-size-sm);
+            display: none;
+        }
+
+        .conversion-preview.visible {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .conversion-preview .arrow {
+            color: var(--primary-400);
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo"><img src="logo.jpeg" alt="FlowFund Logo"
+                        style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;"></div>
+                <span class="sidebar-brand">FlowFund</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="dashboard.html" class="nav-item" data-page="dashboard">
+                        <span class="nav-icon">📊</span> Dashboard
+                    </a>
+                    <a href="expense.html" class="nav-item active" data-page="expenses">
+                        <span class="nav-icon">🧾</span> Expenses
+                    </a>
+                    <a href="dashboard.html" class="nav-item" data-page="approvals" data-roles="manager,admin">
+                        <span class="nav-icon">✅</span> Approvals
+                    </a>
+                </div>
+                <div class="nav-section" data-roles="admin">
+                    <div class="nav-section-title">Administration</div>
+                    <a href="admin.html" class="nav-item" data-page="admin-users">
+                        <span class="nav-icon">👥</span> User Management
+                    </a>
+                    <a href="admin.html#rules" class="nav-item" data-page="admin-rules">
+                        <span class="nav-icon">⚙️</span> Approval Rules
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="user-avatar">?</div>
+                    <div class="user-info">
+                        <div class="user-name">Loading...</div>
+                        <div class="user-role">—</div>
+                    </div>
+                </div>
+                <a href="#" class="nav-item text-danger" id="logoutBtn" style="margin-top: 8px;">
+                    <span class="nav-icon">🚪</span> Logout
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+                    <h1>New Expense</h1>
+                    <div class="header-subtitle">Submit an expense claim for reimbursement</div>
+                </div>
+                <a href="dashboard.html" class="btn btn-outline btn-sm">← Back to Dashboard</a>
+            </header>
+
+            <div class="content-body">
+                <!-- OCR Section -->
+                <div class="ocr-section">
+                    <h3>📷 Scan Receipt (OCR)</h3>
+                    <p class="text-sm text-muted mb-2">Upload a receipt image to auto-fill expense fields.</p>
+                    <div class="d-flex gap-2 align-center">
+                        <input type="file" id="ocrFile" accept="image/*" class="form-control" style="max-width: 300px;">
+                        <button class="btn btn-outline btn-sm" id="ocrBtn" onclick="processOCR()">
+                            🔍 Scan Receipt
+                        </button>
+                    </div>
+                    <div class="ocr-result" id="ocrResult">
+                        <div class="text-xs fw-600 text-success mb-1">✓ OCR Results</div>
+                        <div class="ocr-field">
+                            <span class="label">Amount</span>
+                            <span class="value" id="ocrAmount">—</span>
+                        </div>
+                        <div class="ocr-field">
+                            <span class="label">Date</span>
+                            <span class="value" id="ocrDate">—</span>
+                        </div>
+                        <div class="ocr-field">
+                            <span class="label">Vendor</span>
+                            <span class="value" id="ocrVendor">—</span>
+                        </div>
+                        <button class="btn btn-primary btn-sm mt-2" onclick="applyOCRData()">Apply to Form</button>
+                    </div>
+                </div>
+
+                <!-- Expense Form -->
+                <div class="card expense-form-card">
+                    <div class="card-header">
+                        <h3>🧾 Expense Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="expenseForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="amount">Amount *</label>
+                                    <input type="number" id="amount" class="form-control" step="0.01" min="0.01"
+                                        placeholder="0.00" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="currency">Currency</label>
+                                    <select id="currency" class="form-control">
+                                        <option value="USD">USD - US Dollar</option>
+                                    </select>
+                                    <div class="conversion-preview" id="conversionPreview">
+                                        <span id="convOriginal">—</span>
+                                        <span class="arrow">→</span>
+                                        <span id="convConverted" class="text-success fw-600">—</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="category">Category *</label>
+                                    <select id="category" class="form-control" required>
+                                        <option value="">Select category</option>
+                                        <option value="Travel">Travel</option>
+                                        <option value="Meals">Meals & Entertainment</option>
+                                        <option value="Office Supplies">Office Supplies</option>
+                                        <option value="Software">Software & Subscriptions</option>
+                                        <option value="Equipment">Equipment</option>
+                                        <option value="Training">Training & Education</option>
+                                        <option value="Communication">Communication</option>
+                                        <option value="Transportation">Transportation</option>
+                                        <option value="Accommodation">Accommodation</option>
+                                        <option value="Medical">Medical</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="expense_date">Date *</label>
+                                    <input type="date" id="expense_date" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description">Description *</label>
+                                <input type="text" id="description" class="form-control"
+                                    placeholder="e.g., Client dinner at restaurant" required>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="paid_by">Paid By</label>
+                                    <select id="paid_by" class="form-control">
+                                        <option value="cash">Cash</option>
+                                        <option value="card">Card</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="receipt">Receipt Upload</label>
+                                    <div class="file-upload" id="receiptDrop">
+                                        <div class="upload-icon">📎</div>
+                                        <p>Click or drag to upload receipt</p>
+                                        <div class="file-name" id="receiptName"></div>
+                                        <input type="file" id="receipt" accept="image/*,.pdf"
+                                            onchange="handleReceiptSelect(this)">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="remarks">Remarks</label>
+                                <textarea id="remarks" class="form-control" placeholder="Any additional notes..."
+                                    rows="3"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-outline" onclick="submitExpense(false)" id="saveDraftBtn">
+                            Save as Draft
+                        </button>
+                        <button class="btn btn-primary" onclick="submitExpense(true)" id="submitBtn">
+                            Submit for Approval →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        if (!UI.requireAuth()) throw new Error('Not auth');
+
+        const user = API.getUser();
+        let ocrData = {};
+
+        UI.setupDashboardLayout(user);
+        UI.setActiveNav('expenses');
+
+        // Set default date to today
+        document.getElementById('expense_date').value = new Date().toISOString().split('T')[0];
+
+        // Load currencies
+        async function loadCurrencies() {
+            try {
+                const data = await API.getCurrencies();
+                const select = document.getElementById('currency');
+                select.innerHTML = '';
+                (data.currencies || []).forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.code;
+                    opt.textContent = `${c.code} - ${c.name}`;
+                    if (c.code === (user.currency || 'USD')) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error('Failed to load currencies');
+            }
+        }
+
+        // OCR processing
+        async function processOCR() {
+            const fileInput = document.getElementById('ocrFile');
+            if (!fileInput.files.length) {
+                UI.warning('Please select a receipt image first');
+                return;
+            }
+
+            const btn = document.getElementById('ocrBtn');
+            UI.setButtonLoading(btn, true);
+
+            try {
+                const formData = new FormData();
+                formData.append('receipt', fileInput.files[0]);
+                const data = await API.processOCR(formData);
+                const result = data.ocr_result;
+
+                ocrData = result;
+
+                document.getElementById('ocrAmount').textContent = result.amount || '—';
+                document.getElementById('ocrDate').textContent = result.date || '—';
+                document.getElementById('ocrVendor').textContent = result.vendor || '—';
+                document.getElementById('ocrResult').classList.add('visible');
+
+                if (result.success) {
+                    UI.success('Receipt scanned successfully! Review the extracted data.');
+                } else {
+                    UI.warning(result.error || 'Could not extract data from receipt.');
+                }
+            } catch (err) {
+                UI.error(err.message);
+            } finally {
+                UI.setButtonLoading(btn, false);
+            }
+        }
+
+        // Apply OCR data to form
+        function applyOCRData() {
+            if (ocrData.amount) {
+                document.getElementById('amount').value = ocrData.amount;
+            }
+            if (ocrData.vendor) {
+                document.getElementById('description').value = ocrData.vendor;
+            }
+            // Also use the OCR file as receipt
+            const ocrFile = document.getElementById('ocrFile').files[0];
+            if (ocrFile) {
+                const dt = new DataTransfer();
+                dt.items.add(ocrFile);
+                document.getElementById('receipt').files = dt.files;
+                document.getElementById('receiptName').textContent = ocrFile.name;
+            }
+            UI.success('OCR data applied to form!');
+        }
+
+        // Handle receipt file select
+        function handleReceiptSelect(input) {
+            const fileName = input.files[0] ? input.files[0].name : '';
+            document.getElementById('receiptName').textContent = fileName;
+        }
+
+        // Drag & drop
+        const dropZone = document.getElementById('receiptDrop');
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                document.getElementById('receipt').files = e.dataTransfer.files;
+                handleReceiptSelect(document.getElementById('receipt'));
+            }
+        });
+
+        // Submit expense
+        async function submitExpense(doSubmit) {
+            const amount = document.getElementById('amount').value;
+            const category = document.getElementById('category').value;
+            const expenseDate = document.getElementById('expense_date').value;
+
+            if (!amount || !category || !expenseDate) {
+                UI.warning('Please fill in all required fields');
+                return;
+            }
+
+            const btn = doSubmit ? document.getElementById('submitBtn') : document.getElementById('saveDraftBtn');
+            UI.setButtonLoading(btn, true);
+
+            try {
+                const formData = new FormData();
+                formData.append('amount', amount);
+                formData.append('currency', document.getElementById('currency').value);
+                formData.append('category', category);
+                formData.append('description', document.getElementById('description').value);
+                formData.append('expense_date', expenseDate);
+                formData.append('paid_by', document.getElementById('paid_by').value);
+                formData.append('remarks', document.getElementById('remarks').value);
+                formData.append('submit', doSubmit ? 'true' : 'false');
+
+                const receiptInput = document.getElementById('receipt');
+                if (receiptInput.files.length) {
+                    formData.append('receipt', receiptInput.files[0]);
+                }
+
+                const data = await API.createExpense(formData);
+
+                if (doSubmit) {
+                    UI.success('Expense submitted for approval! 🎉');
+                } else {
+                    UI.success('Expense saved as draft.');
+                }
+
+                if (data.converted_amount && data.company_currency) {
+                    UI.info(`Converted: ${UI.formatCurrency(data.converted_amount, data.company_currency)}`);
+                }
+
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+            } catch (err) {
+                UI.error(err.message);
+            } finally {
+                UI.setButtonLoading(btn, false);
+            }
+        }
+
+        loadCurrencies();
+    </script>
+</body>
+
+</html>

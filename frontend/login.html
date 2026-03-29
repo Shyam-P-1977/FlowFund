@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Log in to your FlowFund account to manage expenses and approvals.">
+    <title>Login – FlowFund</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .auth-page {
+            background: url('assets/login-bg.png') no-repeat center center/cover;
+            position: relative;
+        }
+
+        .auth-page::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(2px);
+            pointer-events: none;
+        }
+
+        .auth-container {
+            position: relative;
+            z-index: 2;
+        }
+
+        .reg-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.6rem;
+            margin-top: 1.2rem;
+        }
+
+        .reg-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.75rem 0.5rem;
+            border: 1px solid var(--border-secondary);
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .reg-btn:hover {
+            border-color: var(--primary-500);
+            background: rgba(99, 102, 241, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .reg-btn .rb-icon {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+        }
+
+        .reg-btn .rb-role {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .reg-btn .rb-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .reg-btn.admin .rb-role {
+            color: #f59e0b;
+        }
+
+        .reg-btn.manager .rb-role {
+            color: #a78bfa;
+        }
+
+        .reg-btn.employee .rb-role {
+            color: #38bdf8;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.2rem 0;
+        }
+
+        .divider span {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-logo">
+                    <div class="logo-icon"><img src="logo.jpeg" alt="FlowFund Logo"
+                            style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;"></div>
+                    <h1>FlowFund</h1>
+                    <p>Welcome back</p>
+                </div>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" class="form-control" placeholder="you@company.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-control" placeholder="Enter your password"
+                            required>
+                    </div>
+                    <button type="submit" id="loginBtn" class="btn btn-primary btn-block btn-lg mt-2">
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="divider"><span>New to FlowFund? Register as</span></div>
+
+                <div class="reg-options">
+                    <a href="signup.html" class="reg-btn admin">
+                        <span class="rb-icon"></span>
+                        <span class="rb-role">ADMIN</span>
+                        <span class="rb-label"></span>
+                    </a>
+                    <a href="manager_register.html" class="reg-btn manager">
+                        <span class="rb-icon"></span>
+                        <span class="rb-role">MANAGER</span>
+                        <span class="rb-label"></span>
+                    </a>
+                    <a href="employee_register.html" class="reg-btn employee">
+                        <span class="rb-icon"></span>
+                        <span class="rb-role">EMPLOYEE</span>
+                        <span class="rb-label"></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        if (API.isAuthenticated()) {
+            const user = API.getUser();
+            if (user) {
+                if (user.role === 'admin') window.location.href = 'admin_dashboard.html';
+                else if (user.role === 'manager') window.location.href = 'manager_dashboard.html';
+                else window.location.href = 'employee_dashboard.html';
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            UI.setButtonLoading(btn, true);
+            try {
+                const data = await API.login({
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value
+                });
+                API.setToken(data.token);
+                API.setUser(data.user);
+                UI.success('Welcome back! 👋');
+                setTimeout(() => {
+                    const role = data.user.role;
+                    if (role === 'admin') window.location.href = 'admin_dashboard.html';
+                    else if (role === 'manager') window.location.href = 'manager_dashboard.html';
+                    else window.location.href = 'employee_dashboard.html';
+                }, 800);
+            } catch (err) {
+                UI.error(err.message);
+            } finally {
+                UI.setButtonLoading(btn, false);
+            }
+        });
+    </script>
+</body>
+
+</html>

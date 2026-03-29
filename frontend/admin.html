@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FlowFund Admin Panel - Manage users, roles, and approval workflows.">
+    <title>Admin Panel – FlowFund</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo"><img src="logo.jpeg" alt="FlowFund Logo"
+                        style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;"></div>
+                <span class="sidebar-brand">FlowFund</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="dashboard.html" class="nav-item" data-page="dashboard">
+                        <span class="nav-icon">📊</span> Dashboard
+                    </a>
+                    <a href="expense.html" class="nav-item" data-page="expenses">
+                        <span class="nav-icon">🧾</span> Expenses
+                    </a>
+                    <a href="dashboard.html" class="nav-item" data-page="approvals" data-roles="manager,admin">
+                        <span class="nav-icon">✅</span> Approvals
+                    </a>
+                </div>
+                <div class="nav-section" data-roles="admin">
+                    <div class="nav-section-title">Administration</div>
+                    <a href="admin.html" class="nav-item active" data-page="admin-users">
+                        <span class="nav-icon">👥</span> User Management
+                    </a>
+                    <a href="admin.html#rules" class="nav-item" data-page="admin-rules">
+                        <span class="nav-icon">⚙️</span> Approval Rules
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="user-avatar">?</div>
+                    <div class="user-info">
+                        <div class="user-name">Loading...</div>
+                        <div class="user-role">—</div>
+                    </div>
+                </div>
+                <a href="#" class="nav-item text-danger" id="logoutBtn" style="margin-top: 8px;">
+                    <span class="nav-icon">🚪</span> Logout
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+                    <h1>Admin Panel</h1>
+                    <div class="header-subtitle">Manage users and approval workflows</div>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <!-- Tabs -->
+                <div class="tabs" id="adminTabs">
+                    <button class="tab-btn active" data-tab="users" onclick="switchTab('users')">👥 Users</button>
+                    <button class="tab-btn" data-tab="rules" onclick="switchTab('rules')">⚙️ Approval Rules</button>
+                </div>
+
+                <!-- Users Tab -->
+                <div class="tab-content active" id="tab-users">
+                    <div class="action-bar">
+                        <h3>User Management</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openCreateUserModal()">
+                            + Add User
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body" style="padding: 0;">
+                            <div id="usersTableContainer">
+                                <div class="page-loader">
+                                    <div class="spinner"></div>
+                                    <p class="text-muted text-sm">Loading users...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Approval Rules Tab -->
+                <div class="tab-content" id="tab-rules">
+                    <div class="action-bar">
+                        <h3>Approval Workflow Rules</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openCreateRuleModal()">
+                            + Add Rule
+                        </button>
+                    </div>
+
+                    <div id="rulesContainer">
+                        <div class="page-loader">
+                            <div class="spinner"></div>
+                            <p class="text-muted text-sm">Loading rules...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create/Edit User Modal -->
+    <div class="modal-backdrop" id="userModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="userModalTitle">Add New User</h3>
+                <button class="modal-close" onclick="UI.hideModal('userModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="editUserId">
+                    <div class="form-group">
+                        <label for="userName">Full Name *</label>
+                        <input type="text" id="userName" class="form-control" placeholder="Jane Smith" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userEmail">Email *</label>
+                        <input type="email" id="userEmail" class="form-control" placeholder="jane@company.com" required>
+                    </div>
+                    <div class="form-group" id="passwordGroup">
+                        <label for="userPassword">Password *</label>
+                        <input type="password" id="userPassword" class="form-control" placeholder="Min 6 characters"
+                            minlength="6">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userRole">Role *</label>
+                            <select id="userRole" class="form-control" required>
+                                <option value="employee">Employee</option>
+                                <option value="manager">Manager</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="userManager">Manager</label>
+                            <select id="userManager" class="form-control">
+                                <option value="">No Manager</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="UI.hideModal('userModal')">Cancel</button>
+                <button class="btn btn-primary" id="saveUserBtn" onclick="saveUser()">Save User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Rule Modal -->
+    <div class="modal-backdrop" id="ruleModal">
+        <div class="modal" style="max-width: 640px;">
+            <div class="modal-header">
+                <h3 id="ruleModalTitle">Create Approval Rule</h3>
+                <button class="modal-close" onclick="UI.hideModal('ruleModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="ruleForm">
+                    <input type="hidden" id="editRuleId">
+                    <div class="form-group">
+                        <label for="ruleName">Rule Name *</label>
+                        <input type="text" id="ruleName" class="form-control" placeholder="e.g., Standard Approval"
+                            required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ruleMinAmount">Min Amount</label>
+                            <input type="number" id="ruleMinAmount" class="form-control" value="0" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="ruleMaxAmount">Max Amount</label>
+                            <input type="number" id="ruleMaxAmount" class="form-control" placeholder="Unlimited"
+                                step="0.01" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rulePercentage">Min Approval % Required</label>
+                            <input type="number" id="rulePercentage" class="form-control" value="100" min="1" max="100">
+                            <span class="form-hint">e.g., 60 = 60% of approvers must approve</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="ruleMode">Approval Mode</label>
+                            <select id="ruleMode" class="form-control">
+                                <option value="true">Sequential (step-by-step)</option>
+                                <option value="false">Parallel (all at once)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="ruleManagerRequired" checked>
+                            Require direct manager approval first
+                        </label>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ruleSpecialApprover">Special Approver (Override)</label>
+                            <select id="ruleSpecialApprover" class="form-control">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="margin-top: 28px;">
+                                <input type="checkbox" id="ruleSpecialAutoApprove">
+                                Auto-approve when special approver approves
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Approval Steps -->
+                    <div
+                        style="margin-top: var(--space-lg); border-top: 1px solid var(--border-secondary); padding-top: var(--space-lg);">
+                        <div class="d-flex justify-between align-center mb-2">
+                            <label class="fw-600">Approval Steps</label>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="addRuleStep()">+ Add
+                                Step</button>
+                        </div>
+                        <div id="ruleStepsContainer"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="UI.hideModal('ruleModal')">Cancel</button>
+                <button class="btn btn-primary" id="saveRuleBtn" onclick="saveRule()">Save Rule</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        if (!UI.requireAuth()) throw new Error('Not auth');
+
+        const user = API.getUser();
+        if (!UI.requireRole('admin')) {
+            window.location.href = 'dashboard.html';
+            throw new Error('Not admin');
+        }
+
+        UI.setupDashboardLayout(user);
+        UI.setActiveNav('admin-users');
+
+        let allUsers = [];
+        let allManagers = [];
+        let allRules = [];
+        let ruleStepCount = 0;
+
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+
+            if (tab === 'rules') {
+                UI.setActiveNav('admin-rules');
+                loadRules();
+            } else {
+                UI.setActiveNav('admin-users');
+            }
+        }
+
+        // Check for hash
+        if (window.location.hash === '#rules') {
+            switchTab('rules');
+        }
+
+        // ========================
+        // USER MANAGEMENT
+        // ========================
+        async function loadUsers() {
+            try {
+                const data = await API.listUsers();
+                allUsers = data.users || [];
+                renderUsersTable();
+            } catch (err) {
+                UI.error(err.message);
+            }
+        }
+
+        async function loadManagers() {
+            try {
+                const data = await API.listManagers();
+                allManagers = data.managers || [];
+            } catch (err) {
+                console.error('Failed to load managers');
+            }
+        }
+
+        function renderUsersTable() {
+            const container = document.getElementById('usersTableContainer');
+
+            if (allUsers.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">👥</div>
+                        <h3>No users yet</h3>
+                        <p>Add employees and managers to your company.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="table-container" style="border: none;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Manager</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${allUsers.map(u => `
+                                <tr>
+                                    <td class="fw-600">${u.name}</td>
+                                    <td class="text-muted text-sm">${u.email}</td>
+                                    <td>${UI.roleBadge(u.role)}</td>
+                                    <td class="text-sm">${u.manager_name || '—'}</td>
+                                    <td>${u.is_active ? '<span class="badge badge-approved">Active</span>' : '<span class="badge badge-rejected">Inactive</span>'}</td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <button class="btn btn-ghost btn-sm" onclick="openEditUserModal(${u.id})">Edit</button>
+                                            ${u.id !== user.id ? `<button class="btn btn-ghost btn-sm text-danger" onclick="deactivateUser(${u.id})">Deactivate</button>` : ''}
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function openCreateUserModal() {
+            document.getElementById('userModalTitle').textContent = 'Add New User';
+            document.getElementById('editUserId').value = '';
+            document.getElementById('userName').value = '';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userRole').value = 'employee';
+            document.getElementById('passwordGroup').style.display = '';
+
+            // Populate managers dropdown
+            const managerSelect = document.getElementById('userManager');
+            managerSelect.innerHTML = '<option value="">No Manager</option>';
+            allManagers.forEach(m => {
+                managerSelect.innerHTML += `<option value="${m.id}">${m.name} (${m.email})</option>`;
+            });
+
+            UI.showModal('userModal');
+        }
+
+        function openEditUserModal(userId) {
+            const u = allUsers.find(x => x.id === userId);
+            if (!u) return;
+
+            document.getElementById('userModalTitle').textContent = 'Edit User';
+            document.getElementById('editUserId').value = u.id;
+            document.getElementById('userName').value = u.name;
+            document.getElementById('userEmail').value = u.email;
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userRole').value = u.role;
+            document.getElementById('passwordGroup').querySelector('label').textContent = 'New Password (leave blank to keep)';
+
+            const managerSelect = document.getElementById('userManager');
+            managerSelect.innerHTML = '<option value="">No Manager</option>';
+            allManagers.forEach(m => {
+                const selected = u.manager_id === m.id ? 'selected' : '';
+                managerSelect.innerHTML += `<option value="${m.id}" ${selected}>${m.name} (${m.email})</option>`;
+            });
+
+            UI.showModal('userModal');
+        }
+
+        async function saveUser() {
+            const editId = document.getElementById('editUserId').value;
+            const name = document.getElementById('userName').value.trim();
+            const email = document.getElementById('userEmail').value.trim();
+            const password = document.getElementById('userPassword').value;
+            const role = document.getElementById('userRole').value;
+            const managerId = document.getElementById('userManager').value || null;
+
+            if (!name || !email) {
+                UI.warning('Name and email are required');
+                return;
+            }
+
+            const btn = document.getElementById('saveUserBtn');
+            UI.setButtonLoading(btn, true);
+
+            try {
+                if (editId) {
+                    const data = { name, role, manager_id: managerId ? parseInt(managerId) : null };
+                    if (password) data.password = password;
+                    await API.updateUser(editId, data);
+                    UI.success('User updated!');
+                } else {
+                    if (!password || password.length < 6) {
+                        UI.warning('Password must be at least 6 characters');
+                        UI.setButtonLoading(btn, false);
+                        return;
+                    }
+                    await API.createUser({ name, email, password, role, manager_id: managerId ? parseInt(managerId) : null });
+                    UI.success('User created! 🎉');
+                }
+
+                UI.hideModal('userModal');
+                loadUsers();
+                loadManagers();
+            } catch (err) {
+                UI.error(err.message);
+            } finally {
+                UI.setButtonLoading(btn, false);
+            }
+        }
+
+        async function deactivateUser(userId) {
+            if (!confirm('Deactivate this user? They will not be able to log in.')) return;
+            try {
+                await API.deleteUser(userId);
+                UI.success('User deactivated');
+                loadUsers();
+            } catch (err) {
+                UI.error(err.message);
+            }
+        }
+
+        // ========================
+        // APPROVAL RULES
+        // ========================
+        async function loadRules() {
+            try {
+                const data = await API.listRules();
+                allRules = data.rules || [];
+                renderRules();
+            } catch (err) {
+                UI.error(err.message);
+            }
+        }
+
+        function renderRules() {
+            const container = document.getElementById('rulesContainer');
+
+            if (allRules.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚙️</div>
+                        <h3>No approval rules configured</h3>
+                        <p>Create rules to define how expenses are approved in your organization.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = allRules.map(rule => `
+                <div class="card mb-2">
+                    <div class="card-header">
+                        <div>
+                            <h3>${rule.name}</h3>
+                            <p class="text-sm text-muted mt-1">
+                                Amount range: ${UI.formatCurrency(rule.min_amount || 0)} – ${rule.max_amount ? UI.formatCurrency(rule.max_amount) : '∞'}
+                                · ${rule.is_sequential ? 'Sequential' : 'Parallel'}
+                                · ${rule.min_percentage}% approval required
+                            </p>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-ghost btn-sm" onclick="openEditRuleModal(${rule.id})">Edit</button>
+                            <button class="btn btn-ghost btn-sm text-danger" onclick="deleteRule(${rule.id})">Delete</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex gap-3" style="flex-wrap: wrap;">
+                            <div>
+                                <div class="text-xs text-muted">Manager Required</div>
+                                <div class="fw-600">${rule.is_manager_required ? '✅ Yes' : '❌ No'}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-muted">Special Approver</div>
+                                <div class="fw-600">${rule.special_approver_name || '—'}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-muted">Auto-Approve</div>
+                                <div class="fw-600">${rule.special_approver_auto_approve ? '✅ Yes' : '❌ No'}</div>
+                            </div>
+                        </div>
+                        ${rule.steps && rule.steps.length > 0 ? `
+                            <div style="margin-top: 1rem;">
+                                <div class="text-xs text-muted mb-1" style="text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Approval Steps</div>
+                                <div class="timeline" style="margin-top: 0.5rem;">
+                                    ${rule.steps.map(s => `
+                                        <div class="timeline-item">
+                                            <div class="timeline-dot approved"></div>
+                                            <div class="timeline-content">
+                                                <h4>Step ${s.sequence_order}: ${s.approver_name}</h4>
+                                                <p class="text-xs text-muted">${s.approver_email}</p>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : '<p class="text-sm text-muted mt-2">No specific approval steps defined. Will use manager if required.</p>'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openCreateRuleModal() {
+            document.getElementById('ruleModalTitle').textContent = 'Create Approval Rule';
+            document.getElementById('editRuleId').value = '';
+            document.getElementById('ruleName').value = '';
+            document.getElementById('ruleMinAmount').value = '0';
+            document.getElementById('ruleMaxAmount').value = '';
+            document.getElementById('rulePercentage').value = '100';
+            document.getElementById('ruleMode').value = 'true';
+            document.getElementById('ruleManagerRequired').checked = true;
+            document.getElementById('ruleSpecialAutoApprove').checked = false;
+            document.getElementById('ruleStepsContainer').innerHTML = '';
+            ruleStepCount = 0;
+
+            populateApproverDropdowns();
+            UI.showModal('ruleModal');
+        }
+
+        function openEditRuleModal(ruleId) {
+            const rule = allRules.find(r => r.id === ruleId);
+            if (!rule) return;
+
+            document.getElementById('ruleModalTitle').textContent = 'Edit Approval Rule';
+            document.getElementById('editRuleId').value = rule.id;
+            document.getElementById('ruleName').value = rule.name;
+            document.getElementById('ruleMinAmount').value = rule.min_amount || 0;
+            document.getElementById('ruleMaxAmount').value = rule.max_amount || '';
+            document.getElementById('rulePercentage').value = rule.min_percentage || 100;
+            document.getElementById('ruleMode').value = rule.is_sequential ? 'true' : 'false';
+            document.getElementById('ruleManagerRequired').checked = !!rule.is_manager_required;
+            document.getElementById('ruleSpecialAutoApprove').checked = !!rule.special_approver_auto_approve;
+
+            populateApproverDropdowns();
+
+            if (rule.special_approver_id) {
+                document.getElementById('ruleSpecialApprover').value = rule.special_approver_id;
+            }
+
+            // Populate steps
+            document.getElementById('ruleStepsContainer').innerHTML = '';
+            ruleStepCount = 0;
+            if (rule.steps) {
+                rule.steps.forEach(s => {
+                    addRuleStep(s.approver_id, s.sequence_order);
+                });
+            }
+
+            UI.showModal('ruleModal');
+        }
+
+        function populateApproverDropdowns() {
+            const specialSelect = document.getElementById('ruleSpecialApprover');
+            specialSelect.innerHTML = '<option value="">None</option>';
+            allManagers.forEach(m => {
+                specialSelect.innerHTML += `<option value="${m.id}">${m.name} (${m.email})</option>`;
+            });
+        }
+
+        function addRuleStep(approverId = '', order = null) {
+            ruleStepCount++;
+            const seq = order || ruleStepCount;
+            const container = document.getElementById('ruleStepsContainer');
+
+            const div = document.createElement('div');
+            div.className = 'd-flex gap-2 align-center mb-1';
+            div.innerHTML = `
+                <span class="text-sm fw-600" style="min-width: 60px;">Step ${seq}</span>
+                <select class="form-control step-approver" data-seq="${seq}" style="flex:1;">
+                    <option value="">Select approver</option>
+                    ${allManagers.map(m => `<option value="${m.id}" ${m.id == approverId ? 'selected' : ''}>${m.name} (${m.email})</option>`).join('')}
+                </select>
+                <button type="button" class="btn btn-ghost btn-sm text-danger" onclick="this.parentElement.remove()">✕</button>
+            `;
+            container.appendChild(div);
+        }
+
+        async function saveRule() {
+            const editId = document.getElementById('editRuleId').value;
+            const name = document.getElementById('ruleName').value.trim();
+            if (!name) {
+                UI.warning('Rule name is required');
+                return;
+            }
+
+            const steps = [];
+            document.querySelectorAll('.step-approver').forEach(sel => {
+                if (sel.value) {
+                    steps.push({
+                        approver_id: parseInt(sel.value),
+                        sequence_order: parseInt(sel.dataset.seq)
+                    });
+                }
+            });
+
+            const ruleData = {
+                name,
+                min_amount: parseFloat(document.getElementById('ruleMinAmount').value) || 0,
+                max_amount: document.getElementById('ruleMaxAmount').value ? parseFloat(document.getElementById('ruleMaxAmount').value) : null,
+                min_percentage: parseFloat(document.getElementById('rulePercentage').value) || 100,
+                is_sequential: document.getElementById('ruleMode').value === 'true',
+                is_manager_required: document.getElementById('ruleManagerRequired').checked,
+                special_approver_id: document.getElementById('ruleSpecialApprover').value ? parseInt(document.getElementById('ruleSpecialApprover').value) : null,
+                special_approver_auto_approve: document.getElementById('ruleSpecialAutoApprove').checked,
+                steps
+            };
+
+            const btn = document.getElementById('saveRuleBtn');
+            UI.setButtonLoading(btn, true);
+
+            try {
+                if (editId) {
+                    await API.updateRule(editId, ruleData);
+                    UI.success('Rule updated!');
+                } else {
+                    await API.createRule(ruleData);
+                    UI.success('Rule created! ⚙️');
+                }
+                UI.hideModal('ruleModal');
+                loadRules();
+            } catch (err) {
+                UI.error(err.message);
+            } finally {
+                UI.setButtonLoading(btn, false);
+            }
+        }
+
+        async function deleteRule(ruleId) {
+            if (!confirm('Delete this approval rule?')) return;
+            try {
+                await API.deleteRule(ruleId);
+                UI.success('Rule deleted');
+                loadRules();
+            } catch (err) {
+                UI.error(err.message);
+            }
+        }
+
+        // Initialize
+        async function init() {
+            await loadManagers();
+            loadUsers();
+            if (window.location.hash === '#rules') {
+                loadRules();
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

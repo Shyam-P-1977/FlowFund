@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="FlowFund - Smart Expense Reimbursement System. Automate your expense workflows with multi-level approvals, OCR receipts, and currency conversion.">
+    <title>FlowFund – Smart Expense Reimbursement</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.05); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hackathon-level animated background elements */
+        .hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.15), transparent 25%);
+            animation: pulse-glow 8s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-grid {
+            position: absolute;
+            inset: 0;
+            background-size: 50px 50px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, transparent 100%);
+            z-index: 0;
+        }
+
+        .orb-1 {
+            position: absolute; width: 400px; height: 400px; background: rgba(99, 102, 241, 0.2); 
+            border-radius: 50%; filter: blur(80px); top: -100px; left: -100px; animation: float 10s ease-in-out infinite;
+        }
+        
+        .orb-2 {
+            position: absolute; width: 350px; height: 350px; background: rgba(16, 185, 129, 0.15); 
+            border-radius: 50%; filter: blur(80px); bottom: 10%; right: -50px; animation: float 12s ease-in-out infinite reverse;
+        }
+
+        .hero-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-lg) var(--space-2xl);
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            cursor: pointer;
+        }
+
+        .hero-logo .logo-mark {
+            width: 50px;
+            height: 50px;
+            background: transparent;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4), inset 0 0 0 1px rgba(255,255,255,0.1);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .hero-logo:hover .logo-mark {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.6), inset 0 0 0 1px rgba(255,255,255,0.2);
+            border-color: var(--primary-400);
+        }
+
+        .hero-logo span {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff, var(--primary-300));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-nav-links {
+            display: flex;
+            gap: var(--space-md);
+            align-items: center;
+        }
+
+        .hero-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-xl);
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-inner {
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 8px 18px;
+            border-radius: var(--radius-full);
+            font-size: 0.85rem;
+            color: var(--primary-300);
+            margin-bottom: var(--space-xl);
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+            animation: float 6s ease-in-out infinite alternate;
+        }
+
+        .hero-inner h1 {
+            font-size: clamp(3rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin-bottom: var(--space-lg);
+            background: linear-gradient(to right, #ffffff, #a5b4fc, #34d399);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 6s linear infinite;
+        }
+
+        .hero-inner p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto var(--space-xl);
+            line-height: 1.6;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: center;
+            margin-bottom: 4rem;
+        }
+
+        .btn-glow {
+            position: relative;
+        }
+
+        .btn-glow::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            background: linear-gradient(135deg, var(--primary-400), var(--accent-400));
+            border-radius: inherit;
+            filter: blur(12px);
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn-glow:hover::before {
+            opacity: 0.8;
+            filter: blur(16px);
+        }
+
+        .hero-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        .hero-feature {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            background: rgba(15, 15, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-feature::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .hero-feature:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
+        }
+
+        .hero-feature:hover::before {
+            opacity: 1;
+        }
+
+        .hero-feature .feat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-300), var(--accent-300));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
+        }
+
+        .hero-feature h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .hero-feature p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .hero-features {
+                grid-template-columns: 1fr;
+            }
+            .hero-inner h1 {
+                font-size: 2.5rem;
+            }
+            .orb-1, .orb-2 {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hero">
+        <div class="bg-grid"></div>
+        <div class="orb-1"></div>
+        <div class="orb-2"></div>
+        <nav class="hero-nav">
+            <div class="hero-logo">
+                <div class="logo-mark"><img src="logo.jpeg" alt="FlowFund Logo"
+                        style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;"></div>
+                <span>FlowFund</span>
+            </div>
+            <div class="hero-nav-links">
+                <a href="login.html" class="btn btn-ghost">Log In</a>
+                <a href="signup.html" class="btn btn-primary btn-sm">Get Started</a>
+            </div>
+        </nav>
+        <div class="hero-content">
+            <div class="hero-inner">
+                <div class="hero-badge">✨ Smart Reimbursement</div>
+                <h1>Expense Claims, Simplified & Automated</h1>
+                <p>FlowFund replaces manual reimbursement chaos with rule-based workflows, multi-level approvals, OCR
+                    receipt scanning, and real-time currency conversion.</p>
+                <div class="hero-cta">
+                    <a href="signup.html" class="btn btn-primary btn-lg btn-glow">Start Free →</a>
+                    <a href="login.html" class="btn btn-outline btn-lg">Sign In</a>
+                </div>
+                <div class="hero-features">
+                    <div class="hero-feature">
+                        <div class="feat-icon">🔄</div>
+                        <h3>Multi-Level Approvals</h3>
+                        <p>Sequential & parallel workflows with conditional rules</p>
+                    </div>
+                    <div class="hero-feature">
+                        <div class="feat-icon">📷</div>
+                        <h3>OCR Scanning</h3>
+                        <p>Auto-extract amount, date & vendor from receipts</p>
+                    </div>
+                    <div class="hero-feature">
+                        <div class="feat-icon">💱</div>
+                        <h3>Currency Conversion</h3>
+                        <p>Submit in any currency with live exchange rates</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/api.js"></script>
+    <script>
+        // Redirect if already logged in
+        if (API.isAuthenticated()) {
+            const user = API.getUser();
+            if (user) {
+                if (user.role === 'admin') window.location.href = 'admin_dashboard.html';
+                else if (user.role === 'manager') window.location.href = 'manager_dashboard.html';
+                else window.location.href = 'employee_dashboard.html';
+            }
+        }
+    </script>
+</body>
+
+</html>

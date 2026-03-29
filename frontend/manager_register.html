@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Registration – FlowFund</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .code-input {
+            letter-spacing: 0.2em;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .company-preview {
+            display: none;
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .company-preview .cp-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #a78bfa;
+        }
+
+        .company-preview .cp-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .role-badge {
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #a78bfa;
+            border-radius: 20px;
+            padding: 3px 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.2rem 0;
+        }
+
+        .divider span {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-secondary);
+        }
+
+        .auth-page {
+            background: url('assets/manager-bg.png') no-repeat center center/cover;
+            position: relative;
+        }
+
+        .auth-page::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(2px);
+            pointer-events: none;
+        }
+
+        .auth-container {
+            position: relative;
+            z-index: 2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-page">
+        <div class="auth-container" style="max-width: 520px;">
+            <div class="auth-card">
+                <div style="text-align:center; margin-bottom: 1.5rem;">
+                    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">
+                        <span style="display:flex; align-items:center;"><img src="logo.jpeg" alt="FlowFund Logo"
+                                style="width: 28px; height: 28px; object-fit: cover; border-radius: 6px;"></span>
+                        <span style="font-size:1.1rem;font-weight:700;">FlowFund</span>
+                    </div>
+                    <div class="role-badge">👔 Manager Registration</div>
+                </div>
+
+                <!-- Step 1: Company Code -->
+                <div id="step1">
+                    <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:0.5rem;">Join Your Company as Manager</h2>
+                    <p class="text-sm text-muted" style="margin-bottom:1rem;">Enter the <b>Company Code</b> provided by
+                        your Admin to register as a Manager.</p>
+
+                    <div class="form-group">
+                        <label for="companyCode">Company Code *</label>
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" id="companyCode" class="form-control code-input"
+                                placeholder="e.g. B215B5" maxlength="6">
+                            <button class="btn btn-outline" onclick="verifyCode()" id="verifyBtn">Verify</button>
+                        </div>
+                    </div>
+
+                    <div class="company-preview" id="companyPreview">
+                        <div class="cp-name" id="cpName"></div>
+                        <div class="cp-sub" id="cpSub"></div>
+                    </div>
+
+                    <button class="btn btn-primary btn-block" id="step1Next" style="display:none;"
+                        onclick="showStep(2)">
+                        Continue →
+                    </button>
+                </div>
+
+                <!-- Step 2: Personal Info -->
+                <div id="step2" style="display:none;">
+                    <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem;">Your Details</h2>
+                    <form id="mgrForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="mgrName">Full Name *</label>
+                                <input type="text" id="mgrName" class="form-control" placeholder="John Manager"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="mgrPhone">Phone Number *</label>
+                                <input type="tel" id="mgrPhone" class="form-control" placeholder="+91 98765 43210"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="mgrEmail">Work Email *</label>
+                            <input type="email" id="mgrEmail" class="form-control" placeholder="john@company.com"
+                                required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="mgrDept">Department *</label>
+                                <select id="mgrDept" class="form-control" required>
+                                    <option value="">Select dept.</option>
+                                    <option>Engineering</option>
+                                    <option>Sales</option>
+                                    <option>Marketing</option>
+                                    <option>Finance</option>
+                                    <option>HR</option>
+                                    <option>Operations</option>
+                                    <option>Legal</option>
+                                    <option>Customer Success</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="mgrPassword">Password *</label>
+                                <input type="password" id="mgrPassword" class="form-control"
+                                    placeholder="Min 6 characters" minlength="6" required>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+                            <button type="button" class="btn btn-outline" onclick="showStep(1)">← Back</button>
+                            <button type="submit" id="registerBtn" class="btn btn-primary flex-1">
+                                🚀 Complete Registration
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="divider"><span>or</span></div>
+
+                <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;font-size:0.8rem;">
+                    <a href="login.html" style="color:var(--text-muted);">Sign In</a>
+                    <span style="color:var(--border-secondary);">·</span>
+                    <a href="signup.html" style="color:var(--text-muted);">Register Company (Admin)</a>
+                    <span style="color:var(--border-secondary);">·</span>
+                    <a href="employee_register.html" style="color:var(--text-muted);">Register as Employee</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        if (API.isAuthenticated()) {
+            const u = API.getUser();
+            if (u) window.location.href = 'manager_dashboard.html';
+        }
+
+        let verifiedCode = '';
+
+        function showStep(n) {
+            document.getElementById('step1').style.display = n === 1 ? '' : 'none';
+            document.getElementById('step2').style.display = n === 2 ? '' : 'none';
+        }
+
+        async function verifyCode() {
+            const code = document.getElementById('companyCode').value.trim().toUpperCase();
+            if (code.length < 4) { UI.warning('Enter a valid company code'); return; }
+            const btn = document.getElementById('verifyBtn');
+            UI.setButtonLoading(btn, true);
+            try {
+                const d = await API.getCompanyByCode(code);
+                const company = d.company;
+                verifiedCode = code;
+                document.getElementById('cpName').textContent = '🏢 ' + company.name;
+                document.getElementById('cpSub').textContent = `${company.country} · ${company.currency}`;
+                document.getElementById('companyPreview').style.display = 'block';
+                document.getElementById('step1Next').style.display = 'block';
+                UI.success('Company found! ✅');
+            } catch (err) {
+                document.getElementById('companyPreview').style.display = 'none';
+                document.getElementById('step1Next').style.display = 'none';
+                UI.error(err.message);
+            } finally { UI.setButtonLoading(btn, false); }
+        }
+
+        document.getElementById('companyCode').addEventListener('keypress', e => {
+            if (e.key === 'Enter') verifyCode();
+        });
+        document.getElementById('companyCode').addEventListener('input', function () {
+            this.value = this.value.toUpperCase();
+        });
+
+        document.getElementById('mgrForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            if (!verifiedCode) { UI.warning('Please verify your company code first'); showStep(1); return; }
+            const btn = document.getElementById('registerBtn');
+            UI.setButtonLoading(btn, true);
+            try {
+                const data = await API.registerManager({
+                    name: document.getElementById('mgrName').value,
+                    email: document.getElementById('mgrEmail').value,
+                    password: document.getElementById('mgrPassword').value,
+                    phone: document.getElementById('mgrPhone').value,
+                    department: document.getElementById('mgrDept').value,
+                    company_code: verifiedCode
+                });
+                API.setToken(data.token);
+                API.setUser(data.user);
+                UI.success('Manager registration successful! 🎉');
+                setTimeout(() => window.location.href = 'manager_dashboard.html', 1200);
+            } catch (err) {
+                UI.error(err.message);
+            } finally { UI.setButtonLoading(btn, false); }
+        });
+    </script>
+</body>
+
+</html>

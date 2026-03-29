@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FlowFund Dashboard - View and manage your expenses, approvals, and team.">
+    <title>Dashboard – FlowFund</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Overlay (mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo"><img src="logo.jpeg" alt="FlowFund Logo"
+                        style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;"></div>
+                <span class="sidebar-brand">FlowFund</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="dashboard.html" class="nav-item active" data-page="dashboard">
+                        <span class="nav-icon">📊</span> Dashboard
+                    </a>
+                    <a href="expense.html" class="nav-item" data-page="expenses" data-roles="employee,manager,admin">
+                        <span class="nav-icon">🧾</span> Expenses
+                    </a>
+                    <a href="#" class="nav-item" data-page="approvals" data-roles="manager,admin" id="navApprovals"
+                        onclick="navigateToApprovals(event)">
+                        <span class="nav-icon">✅</span> Approvals
+                        <span class="nav-badge" id="pendingCount" style="display:none;">0</span>
+                    </a>
+                </div>
+                <div class="nav-section" data-roles="admin">
+                    <div class="nav-section-title">Administration</div>
+                    <a href="admin.html" class="nav-item" data-page="admin-users">
+                        <span class="nav-icon">👥</span> User Management
+                    </a>
+                    <a href="admin.html#rules" class="nav-item" data-page="admin-rules">
+                        <span class="nav-icon">⚙️</span> Approval Rules
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="user-avatar" id="userAvatar">?</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Loading...</div>
+                        <div class="user-role" id="userRole">—</div>
+                    </div>
+                </div>
+                <a href="#" class="nav-item text-danger" id="logoutBtn" style="margin-top: 8px;">
+                    <span class="nav-icon">🚪</span> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+                    <h1 id="pageTitle">Dashboard</h1>
+                    <div class="header-subtitle" id="pageSubtitle">Overview of your expense activity</div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="expense.html" class="btn btn-primary btn-sm" data-roles="employee,manager,admin">
+                        + New Expense
+                    </a>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <!-- Stats Cards -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">📄</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="statTotal">—</div>
+                            <div class="stat-label">Total Expenses</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">⏳</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="statPending">—</div>
+                            <div class="stat-label">Pending Approval</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon success">✅</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="statApproved">—</div>
+                            <div class="stat-label">Approved</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon danger">❌</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="statRejected">—</div>
+                            <div class="stat-label">Rejected</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manager Pending Section -->
+                <div id="managerSection" style="display: none;">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>⏳ Pending Your Approval</h3>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div id="pendingApprovalsContainer">
+                                <div class="page-loader">
+                                    <div class="spinner"></div>
+                                    <p class="text-muted text-sm">Loading approvals...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expenses Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📋 Recent Expenses</h3>
+                        <div class="filters">
+                            <select id="statusFilter" class="form-control"
+                                style="width: auto; padding: 8px 36px 8px 12px; font-size: 0.8125rem;">
+                                <option value="">All Status</option>
+                                <option value="draft">Draft</option>
+                                <option value="waiting_approval">Waiting</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div id="expensesTableContainer">
+                            <div class="page-loader">
+                                <div class="spinner"></div>
+                                <p class="text-muted text-sm">Loading expenses...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Approval Action Modal -->
+    <div class="modal-backdrop" id="approvalModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="approvalModalTitle">Approve Expense</h3>
+                <button class="modal-close" onclick="UI.hideModal('approvalModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="approvalExpenseDetails"></div>
+                <div class="form-group mt-2">
+                    <label for="approvalComments">Comments</label>
+                    <textarea id="approvalComments" class="form-control" placeholder="Add your comments..."
+                        rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="UI.hideModal('approvalModal')">Cancel</button>
+                <button class="btn btn-danger btn-sm" id="btnReject" onclick="handleApprovalAction('reject')">
+                    ❌ Reject
+                </button>
+                <button class="btn btn-success btn-sm" id="btnApprove" onclick="handleApprovalAction('approve')">
+                    ✅ Approve
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense Detail Modal -->
+    <div class="modal-backdrop" id="expenseDetailModal">
+        <div class="modal" style="max-width: 640px;">
+            <div class="modal-header">
+                <h3>Expense Details</h3>
+                <button class="modal-close" onclick="UI.hideModal('expenseDetailModal')">✕</button>
+            </div>
+            <div class="modal-body" id="expenseDetailContent">
+            </div>
+            <div class="modal-footer" id="expenseDetailFooter">
+                <button class="btn btn-outline" onclick="UI.hideModal('expenseDetailModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        if (!UI.requireAuth()) throw new Error('Not auth');
+
+        const user = API.getUser();
+        let allExpenses = [];
+        let pendingApprovals = [];
+        let currentApprovalExpenseId = null;
+
+        // Setup layout
+        UI.setupDashboardLayout(user);
+        UI.setActiveNav('dashboard');
+
+        // Set page title based on role
+        document.getElementById('pageSubtitle').textContent =
+            user.role === 'admin' ? 'Company-wide expense overview' :
+                user.role === 'manager' ? 'Team expense overview & approvals' :
+                    'Your expense activity summary';
+
+        // Show manager section
+        if (user.role === 'manager' || user.role === 'admin') {
+            document.getElementById('managerSection').style.display = 'block';
+            loadPendingApprovals();
+        }
+
+        // Navigate to approvals
+        function navigateToApprovals(e) {
+            e.preventDefault();
+            document.getElementById('managerSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Load expenses
+        async function loadExpenses() {
+            try {
+                const data = await API.listExpenses();
+                allExpenses = data.expenses || [];
+                updateStats();
+                renderExpensesTable();
+            } catch (err) {
+                UI.error(err.message);
+            }
+        }
+
+        // Update stat cards
+        function updateStats() {
+            document.getElementById('statTotal').textContent = allExpenses.length;
+            document.getElementById('statPending').textContent = allExpenses.filter(e => e.status === 'waiting_approval').length;
+            document.getElementById('statApproved').textContent = allExpenses.filter(e => e.status === 'approved').length;
+            document.getElementById('statRejected').textContent = allExpenses.filter(e => e.status === 'rejected').length;
+        }
+
+        // Render expenses table
+        function renderExpensesTable(filter = '') {
+            const container = document.getElementById('expensesTableContainer');
+            let expenses = allExpenses;
+
+            if (filter) {
+                expenses = expenses.filter(e => e.status === filter);
+            }
+
+            if (expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <h3>No expenses found</h3>
+                        <p>Submit your first expense to get started.</p>
+                        <a href="expense.html" class="btn btn-primary btn-sm mt-2">+ New Expense</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const showEmployee = user.role !== 'employee';
+
+            container.innerHTML = `
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                ${showEmployee ? '<th>Employee</th>' : ''}
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                ${showEmployee ? '<th>Converted</th>' : ''}
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${expenses.map(e => `
+                                <tr>
+                                    ${showEmployee ? `<td class="fw-600">${e.employee_name || '—'}</td>` : ''}
+                                    <td>${e.description || '—'}</td>
+                                    <td class="text-muted text-sm">${UI.formatDate(e.expense_date)}</td>
+                                    <td><span class="badge badge-role">${e.category}</span></td>
+                                    <td class="fw-600">${UI.formatCurrency(e.amount, e.currency)}</td>
+                                    ${showEmployee ? `<td class="text-sm text-muted">${e.converted_amount ? UI.formatCurrency(e.converted_amount, e.company_currency) : '—'}</td>` : ''}
+                                    <td>${UI.statusBadge(e.status)}</td>
+                                    <td>
+                                        <button class="btn btn-ghost btn-sm" onclick="viewExpenseDetail(${e.id})">View</button>
+                                        ${e.status === 'draft' && e.user_id === user.id ? `<button class="btn btn-primary btn-sm" onclick="submitDraftExpense(${e.id})">Submit</button>` : ''}
+                                        ${user.role === 'admin' && e.status === 'waiting_approval' ? `<button class="btn btn-ghost btn-sm text-warning" onclick="openOverrideModal(${e.id})">Override</button>` : ''}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Filter handler
+        document.getElementById('statusFilter').addEventListener('change', function () {
+            renderExpensesTable(this.value);
+        });
+
+        // Load pending approvals (Manager/Admin)
+        async function loadPendingApprovals() {
+            try {
+                const data = await API.getPendingApprovals();
+                pendingApprovals = data.approvals || [];
+
+                const badge = document.getElementById('pendingCount');
+                if (pendingApprovals.length > 0) {
+                    badge.textContent = pendingApprovals.length;
+                    badge.style.display = '';
+                } else {
+                    badge.style.display = 'none';
+                }
+
+                renderPendingApprovals();
+            } catch (err) {
+                console.error('Error loading approvals:', err);
+            }
+        }
+
+        function renderPendingApprovals() {
+            const container = document.getElementById('pendingApprovalsContainer');
+
+            if (pendingApprovals.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: 2rem;">
+                        <div class="empty-icon">🎉</div>
+                        <h3>All caught up!</h3>
+                        <p>No pending approvals at this time.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="table-container" style="border:none;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Converted</th>
+                                <th>Step</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${pendingApprovals.map(a => `
+                                <tr>
+                                    <td class="fw-600">${a.employee_name}</td>
+                                    <td>${a.description || '—'}</td>
+                                    <td class="text-muted text-sm">${UI.formatDate(a.expense_date)}</td>
+                                    <td><span class="badge badge-role">${a.category}</span></td>
+                                    <td class="fw-600">${UI.formatCurrency(a.amount, a.currency)}</td>
+                                    <td class="text-sm text-muted">${a.converted_amount ? UI.formatCurrency(a.converted_amount, a.company_currency) : '—'}</td>
+                                    <td class="text-sm">#${a.sequence_order}</td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <button class="btn btn-success btn-sm" onclick="openApprovalModal(${a.expense_id}, 'approve')">✅</button>
+                                            <button class="btn btn-danger btn-sm" onclick="openApprovalModal(${a.expense_id}, 'reject')">❌</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Approval modal
+        function openApprovalModal(expenseId, action) {
+            currentApprovalExpenseId = expenseId;
+            const approval = pendingApprovals.find(a => a.expense_id === expenseId);
+
+            document.getElementById('approvalModalTitle').textContent =
+                action === 'approve' ? '✅ Approve Expense' : '❌ Reject Expense';
+
+            document.getElementById('approvalExpenseDetails').innerHTML = approval ? `
+                <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+                    <p><strong>${approval.employee_name}</strong> · ${UI.formatCurrency(approval.amount, approval.currency)}</p>
+                    <p class="text-sm text-muted">${approval.description || ''} · ${approval.category}</p>
+                </div>
+            ` : '';
+
+            document.getElementById('approvalComments').value = '';
+
+            if (action === 'approve') {
+                document.getElementById('btnApprove').style.display = '';
+                document.getElementById('btnReject').style.display = 'none';
+            } else {
+                document.getElementById('btnApprove').style.display = 'none';
+                document.getElementById('btnReject').style.display = '';
+            }
+
+            UI.showModal('approvalModal');
+        }
+
+        async function handleApprovalAction(action) {
+            if (!currentApprovalExpenseId) return;
+
+            const comments = document.getElementById('approvalComments').value;
+            if (action === 'reject' && !comments.trim()) {
+                UI.warning('Please add comments when rejecting');
+                return;
+            }
+
+            const btn = document.getElementById(action === 'approve' ? 'btnApprove' : 'btnReject');
+            UI.setButtonLoading(btn, true);
+
+            try {
+                if (action === 'approve') {
+                    await API.approveExpense(currentApprovalExpenseId, comments);
+                    UI.success('Expense approved! ✅');
+                } else {
+                    await API.rejectExpense(currentApprovalExpenseId, comments);
+                    UI.success('Expense rejected.');
+                }
+
+                UI.hideModal('approvalModal');
+                loadPendingApprovals();
+                loadExpenses();
+            } catch (err) {
+                UI.error(err.message);
+            } finally {
+                UI.setButtonLoading(btn, false);
+            }
+        }
+
+        // View expense detail
+        async function viewExpenseDetail(expenseId) {
+            const content = document.getElementById('expenseDetailContent');
+            content.innerHTML = '<div class="page-loader"><div class="spinner"></div></div>';
+            UI.showModal('expenseDetailModal');
+
+            try {
+                const data = await API.getExpense(expenseId);
+                const e = data.expense;
+
+                content.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <div class="text-xs text-muted mb-1">Employee</div>
+                            <div class="fw-600">${e.employee_name || '—'}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted mb-1">Status</div>
+                            <div>${UI.statusBadge(e.status)}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted mb-1">Amount</div>
+                            <div class="fw-600" style="font-size: 1.25rem;">${UI.formatCurrency(e.amount, e.currency)}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted mb-1">Converted</div>
+                            <div>${e.converted_amount ? UI.formatCurrency(e.converted_amount, e.company_currency) : '—'}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted mb-1">Category</div>
+                            <div>${e.category}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted mb-1">Date</div>
+                            <div>${UI.formatDate(e.expense_date)}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted mb-1">Paid By</div>
+                            <div style="text-transform:capitalize;">${e.paid_by}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted mb-1">Description</div>
+                            <div>${e.description || '—'}</div>
+                        </div>
+                    </div>
+
+                    ${e.remarks ? `<div class="mb-2"><div class="text-xs text-muted mb-1">Remarks</div><div class="text-sm">${e.remarks}</div></div>` : ''}
+
+                    ${e.receipt_path ? `
+                        <div class="mb-2">
+                            <div class="text-xs text-muted mb-1">Receipt</div>
+                            <a href="http://127.0.0.1:5000/api/expenses/receipt/${e.receipt_path}" target="_blank" class="btn btn-outline btn-sm">📎 View Receipt</a>
+                        </div>
+                    ` : ''}
+
+                    ${e.approval_history && e.approval_history.length > 0 ? `
+                        <div style="margin-top: 1.5rem;">
+                            <div class="text-xs text-muted mb-2" style="text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;">Approval History</div>
+                            <div class="timeline">
+                                ${e.approval_history.map(h => `
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot ${h.status}"></div>
+                                        <div class="timeline-content">
+                                            <h4>${h.approver_name} <span class="text-xs text-muted">(Step ${h.sequence_order})</span></h4>
+                                            <p>${UI.statusBadge(h.status)} ${h.comments ? `— ${h.comments}` : ''}</p>
+                                            <div class="timeline-time">${UI.formatDateTime(h.updated_at)}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : '<p class="text-sm text-muted mt-2">No approval history yet.</p>'}
+                `;
+            } catch (err) {
+                content.innerHTML = `<p class="text-danger">${err.message}</p>`;
+            }
+        }
+
+        // Submit draft expense
+        async function submitDraftExpense(expenseId) {
+            if (!confirm('Submit this expense for approval?')) return;
+            try {
+                await API.submitExpense(expenseId);
+                UI.success('Expense submitted for approval!');
+                loadExpenses();
+            } catch (err) {
+                UI.error(err.message);
+            }
+        }
+
+        // Admin override
+        async function openOverrideModal(expenseId) {
+            const action = prompt('Type "approve" or "reject":');
+            if (!action || !['approve', 'reject'].includes(action.toLowerCase())) return;
+
+            const comments = prompt('Add comments (optional):') || 'Admin override';
+
+            try {
+                await API.overrideApproval(expenseId, { action: action.toLowerCase(), comments });
+                UI.success(`Expense ${action}d by admin.`);
+                loadExpenses();
+                if (user.role === 'manager' || user.role === 'admin') loadPendingApprovals();
+            } catch (err) {
+                UI.error(err.message);
+            }
+        }
+
+        // Initialize
+        loadExpenses();
+    </script>
+</body>
+
+</html>

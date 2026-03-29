@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard – FlowFund</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .si-blue {
+            background: rgba(99, 102, 241, .15);
+        }
+
+        .si-green {
+            background: rgba(34, 197, 94, .15);
+        }
+
+        .si-yellow {
+            background: rgba(234, 179, 8, .15);
+        }
+
+        .si-red {
+            background: rgba(239, 68, 68, .15);
+        }
+
+        .stat-val {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-lbl {
+            font-size: .75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-pill {
+            padding: 8px 18px;
+            border-radius: 7px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: .875rem;
+            transition: all .2s;
+        }
+
+        .tab-pill.active {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+
+        .action-bar h3 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .app-layout {
+            background: url('assets/manager-bg.png') no-repeat center center/cover fixed;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        .main-content {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .card,
+        .stat-card {
+            background: rgba(30, 41, 59, 0.8) !important;
+            backdrop-filter: blur(10px);
+        }
+
+        .code-banner {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(168, 85, 247, 0.9));
+            border-radius: 12px;
+            padding: 1.25rem 1.75rem;
+            color: white;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .code-display {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: .2em;
+            font-family: monospace;
+        }
+
+        .code-label {
+            font-size: .8rem;
+            opacity: .8;
+            margin-bottom: 4px;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, .2);
+            border: 1px solid rgba(255, 255, 255, .3);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .8rem;
+            font-weight: 600;
+            transition: all .2s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, .35);
+        }
+
+        .expense-badge,
+        .eb-pending,
+        .eb-approved,
+        .eb-rejected,
+        .eb-draft {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-weight: 500;
+        }
+
+        .eb-pending {
+            background: rgba(234, 179, 8, .15);
+            color: #eab308;
+        }
+
+        .eb-approved {
+            background: rgba(34, 197, 94, .15);
+            color: #22c55e;
+        }
+
+        .eb-rejected {
+            background: rgba(239, 68, 68, .15);
+            color: #ef4444;
+        }
+
+        .eb-draft {
+            background: rgba(148, 163, 184, .15);
+            color: #94a3b8;
+        }
+
+        .head-badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            font-size: .65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-left: 4px;
+        }
+
+        .user-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: .75rem;
+        }
+
+        .user-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .user-avatar-sm {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .av-emp {
+            background: rgba(14, 165, 233, .15);
+            color: #38bdf8;
+        }
+
+        .av-mgr {
+            background: rgba(139, 92, 246, .15);
+            color: #a78bfa;
+        }
+
+        .av-adm {
+            background: rgba(245, 158, 11, .15);
+            color: #fbbf24;
+        }
+
+        .user-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: .5rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-chip {
+            font-size: .75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo"><img src="logo.jpeg" alt="FlowFund Logo"
+                        style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;"></div>
+                <span class="sidebar-brand">FlowFund</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Admin Panel</div>
+                    <a href="#" class="nav-item active" id="navUsers" onclick="switchTab('users',this)"><span
+                            class="nav-icon">👥</span> Users</a>
+                    <a href="#" class="nav-item" id="navRules" onclick="switchTab('rules',this)"><span
+                            class="nav-icon">⚙️</span> Approval Rules</a>
+                    <a href="#" class="nav-item" id="navExpenses" onclick="switchTab('expenses',this)"><span
+                            class="nav-icon">📋</span> All Expenses</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Admin</div>
+                        <div class="user-role" id="companyName">—</div>
+                    </div>
+                </div>
+                <a href="#" class="nav-item text-danger" id="logoutBtn" style="margin-top:8px;"><span
+                        class="nav-icon">🚪</span> Logout</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+                    <h1>Admin Dashboard</h1>
+                    <div class="header-subtitle" id="pageSubtitle">Loading…</div>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <!-- Company Code Banner -->
+                <div class="code-box" id="codeBox" style="display:none;">
+                    <div>
+                        <div class="code-label"> Share this Company Code with Employees &amp; Managers to let them
+                            register:</div>
+                        <div class="code-display" id="codeDisplay">——</div>
+                    </div>
+                    <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+                </div>
+
+                <!-- Stats -->
+                <div class="stat-row">
+                    <div class="stat-card">
+                        <div class="stat-icon-box si-blue">👥</div>
+                        <div>
+                            <div class="stat-val" id="statUsers">—</div>
+                            <div class="stat-lbl">Total Users</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-box si-yellow">⏳</div>
+                        <div>
+                            <div class="stat-val" id="statPending">—</div>
+                            <div class="stat-lbl">Pending Approval</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-box si-green">✅</div>
+                        <div>
+                            <div class="stat-val" id="statApproved">—</div>
+                            <div class="stat-lbl">Approved</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-box si-red">❌</div>
+                        <div>
+                            <div class="stat-val" id="statRejected">—</div>
+                            <div class="stat-lbl">Rejected</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tab-bar">
+                    <button class="tab-pill active" onclick="switchTab('users',this)">👥 Users</button>
+                    <button class="tab-pill" onclick="switchTab('rules',this)">⚙️ Approval Rules</button>
+                    <button class="tab-pill" onclick="switchTab('expenses',this)">📋 All Expenses</button>
+                </div>
+
+                <!-- USERS TAB -->
+                <div class="tab-panel active" id="panel-users">
+                    <div class="action-bar">
+                        <div style="display:flex;gap:.5rem;">
+                            <button class="tab-pill active" id="filter-all"
+                                onclick="filterUsers('all',this)">All</button>
+                            <button class="tab-pill" id="filter-employee"
+                                onclick="filterUsers('employee',this)">Employees</button>
+                            <button class="tab-pill" id="filter-manager"
+                                onclick="filterUsers('manager',this)">Managers</button>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="openAddUserModal()">+ Add User</button>
+                    </div>
+                    <div id="usersContainer">
+                        <div class="page-loader">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RULES TAB -->
+                <div class="tab-panel" id="panel-rules">
+                    <div class="action-bar">
+                        <h3>Approval Workflow Rules</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openCreateRuleModal()">+ Add Rule</button>
+                    </div>
+
+                    <!-- Default Rule Info Banner -->
+                    <div
+                        style="background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(16,185,129,0.08));border:1px solid rgba(99,102,241,0.25);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;">
+                        <div style="display:flex;align-items:flex-start;gap:1rem;flex-wrap:wrap;">
+                            <div style="font-size:2rem;flex-shrink:0;">⚙️</div>
+                            <div style="flex:1;min-width:250px;">
+                                <div
+                                    style="font-weight:700;font-size:1rem;margin-bottom:.4rem;color:var(--primary-300);">
+                                    FlowFund Standard Approval Rule
+                                    <span
+                                        style="font-size:.7rem;background:rgba(99,102,241,.2);color:#a5b4fc;padding:2px 10px;border-radius:20px;margin-left:8px;font-weight:600;">DEFAULT</span>
+                                </div>
+                                <div
+                                    style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:.85rem;color:var(--text-secondary);margin-bottom:.75rem;">
+                                    <span
+                                        style="background:rgba(255,255,255,.07);border-radius:8px;padding:4px 12px;">🧾
+                                        Employee Submits</span>
+                                    <span style="color:var(--primary-400);">→</span>
+                                    <span
+                                        style="background:rgba(255,255,255,.07);border-radius:8px;padding:4px 12px;">👔
+                                        Manager Reviews</span>
+                                    <span style="color:var(--primary-400);">→</span>
+                                    <span
+                                        style="background:rgba(255,255,255,.07);border-radius:8px;padding:4px 12px;">🏅
+                                        Head Manager Reviews</span>
+                                    <span style="color:var(--primary-400);">→</span>
+                                    <span
+                                        style="background:rgba(34,197,94,.12);color:#4ade80;border-radius:8px;padding:4px 12px;">✅
+                                        Approved</span>
+                                </div>
+                                <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.8rem;">
+                                    <span><span style="color:var(--text-muted);">Mode:</span>
+                                        <strong>Sequential</strong></span>
+                                    <span><span style="color:var(--text-muted);">Required:</span> <strong>100%
+                                            approval</strong> (both approvers)</span>
+                                    <span><span style="color:var(--text-muted);">Applies to:</span> <strong>All expense
+                                            amounts</strong></span>
+                                </div>
+                            </div>
+                            <div
+                                style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:.75rem 1rem;min-width:200px;">
+                                <div style="font-size:.75rem;color:#fbbf24;font-weight:700;margin-bottom:.3rem;">⚡ Admin
+                                    Override Authority</div>
+                                <div style="font-size:.78rem;color:var(--text-secondary);line-height:1.5;">Admin can
+                                    <strong style="color:var(--text-primary);">instantly approve</strong> any expense at
+                                    any stage, bypassing Manager &amp; Head Manager — action is logged in the approval
+                                    trail.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="rulesContainer">
+                        <div class="page-loader">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- EXPENSES TAB -->
+                <div class="tab-panel" id="panel-expenses">
+                    <div class="action-bar">
+                        <h3>All Company Expenses</h3>
+                        <select id="expStatusFilter" class="form-control" style="width:auto;"
+                            onchange="filterExpenses()">
+                            <option value="">All Status</option>
+                            <option value="draft">Draft</option>
+                            <option value="waiting_approval">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="card">
+                        <div class="card-body" style="padding:0;">
+                            <div id="expensesTableContainer">
+                                <div class="page-loader">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Assign Manager Modal -->
+    <div class="modal-backdrop" id="assignModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Assign Manager</h3>
+                <button class="modal-close" onclick="UI.hideModal('assignModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-muted mb-2">Select which manager <b id="assignEmpName"></b> reports to:</p>
+                <select id="assignManagerSelect" class="form-control">
+                    <option value="">No Manager</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="UI.hideModal('assignModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmAssign()">Assign</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal-backdrop" id="addUserModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="addUserTitle">Add New User</h3>
+                <button class="modal-close" onclick="UI.hideModal('addUserModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <input type="hidden" id="editUserId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="uName">Full Name *</label>
+                            <input type="text" id="uName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="uPhone">Phone</label>
+                            <input type="text" id="uPhone" class="form-control" placeholder="+91 ...">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="uEmail">Email *</label>
+                            <input type="email" id="uEmail" class="form-control" required>
+                        </div>
+                        <div class="form-group" id="pwGroup">
+                            <label for="uPassword">Password *</label>
+                            <input type="password" id="uPassword" class="form-control" placeholder="Min 6 chars">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="uRole">Role *</label>
+                            <select id="uRole" class="form-control" required onchange="toggleMgrField()">
+                                <option value="employee">Employee</option>
+                                <option value="manager">Manager</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="uDept">Department</label>
+                            <select id="uDept" class="form-control">
+                                <option value="">Select</option>
+                                <option>Engineering</option>
+                                <option>Sales</option>
+                                <option>Marketing</option>
+                                <option>Finance</option>
+                                <option>HR</option>
+                                <option>Operations</option>
+                                <option>Legal</option>
+                                <option>Customer Success</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" id="mgrFieldGroup">
+                        <label for="uManager">Reports To Manager</label>
+                        <select id="uManager" class="form-control">
+                            <option value="">No Manager</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="UI.hideModal('addUserModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveUser()">Save User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rule Modal -->
+    <div class="modal-backdrop" id="ruleModal">
+        <div class="modal" style="max-width:600px;">
+            <div class="modal-header">
+                <h3 id="ruleModalTitle">Create Approval Rule</h3>
+                <button class="modal-close" onclick="UI.hideModal('ruleModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="ruleForm">
+                    <input type="hidden" id="editRuleId">
+                    <div class="form-group"><label>Rule Name *</label><input type="text" id="ruleName"
+                            class="form-control" required></div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Min Amount</label><input type="number" id="ruleMin"
+                                class="form-control" value="0" step="0.01"></div>
+                        <div class="form-group"><label>Max Amount (blank = unlimited)</label><input type="number"
+                                id="ruleMax" class="form-control" placeholder="Unlimited" step="0.01"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Min Approval %</label><input type="number" id="rulePct"
+                                class="form-control" value="100" min="1" max="100"></div>
+                        <div class="form-group"><label>Mode</label>
+                            <select id="ruleMode" class="form-control">
+                                <option value="true">Sequential</option>
+                                <option value="false">Parallel</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group"><label><input type="checkbox" id="ruleMgrReq" checked> &nbsp;Require manager
+                            approval first</label></div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Special Approver</label><select id="ruleSpecial"
+                                class="form-control">
+                                <option value="">None</option>
+                            </select></div>
+                        <div class="form-group" style="padding-top:28px;"><label><input type="checkbox"
+                                    id="ruleAutoApprove"> &nbsp;Auto-approve if special approver approves</label></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="UI.hideModal('ruleModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveRule()">Save Rule</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense Detail Modal -->
+    <div class="modal-backdrop" id="expDetailModal">
+        <div class="modal" style="max-width:640px;">
+            <div class="modal-header">
+                <h3>Expense Details</h3><button class="modal-close" onclick="UI.hideModal('expDetailModal')">✕</button>
+            </div>
+            <div class="modal-body" id="expDetailContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="UI.hideModal('expDetailModal')">Close</button>
+                <div id="expDetailActions"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        if (!UI.requireAuth()) throw new Error();
+        const user = API.getUser();
+        if (!user || user.role !== 'admin') { window.location.href = 'login.html'; throw new Error(); }
+
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userAvatar').textContent = user.name[0].toUpperCase();
+        if (user.company_name) document.getElementById('companyName').textContent = user.company_name;
+        document.getElementById('logoutBtn').addEventListener('click', e => { e.preventDefault(); API.clearAuth(); window.location.href = 'login.html'; });
+
+        let allUsers = [], allManagers = [], allRules = [], allExpenses = [], assigningUserId = null, currentFilter = 'all';
+
+        // ── COMPANY CODE BOX ────────────────────────────────────
+        async function loadCompanyCode() {
+            try {
+                const d = await API.getMe();
+                const u = d.user;
+                if (u.company_code) {
+                    document.getElementById('codeDisplay').textContent = u.company_code;
+                    document.getElementById('codeBox').style.display = 'flex';
+                    document.getElementById('pageSubtitle').innerHTML =
+                        `🏢 <b>${u.company_name || ''}</b> &nbsp;·&nbsp; 💱 ${u.currency || ''} &nbsp;·&nbsp; Code: <b>${u.company_code}</b>`;
+                    // Also update localStorage user
+                    API.setUser(u);
+                }
+            } catch (e) { }
+        }
+        function copyCode() {
+            const code = document.getElementById('codeDisplay').textContent;
+            navigator.clipboard.writeText(code).then(() => UI.success('Code copied! Share it with your team ✅'));
+        }
+
+        // ── TAB SWITCH ──────────────────────────────────────────
+        function switchTab(tab, el) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
+            document.getElementById('panel-' + tab).classList.add('active');
+            if (el) el.classList.add('active');
+            if (tab === 'rules') loadRules();
+            else if (tab === 'expenses') loadExpenses();
+        }
+
+        // ── STATS ───────────────────────────────────────────────
+        function updateStats() {
+            document.getElementById('statUsers').textContent = allUsers.filter(u => u.role !== 'admin').length;
+            document.getElementById('statPending').textContent = allExpenses.filter(e => e.status === 'waiting_approval').length;
+            document.getElementById('statApproved').textContent = allExpenses.filter(e => e.status === 'approved').length;
+            document.getElementById('statRejected').textContent = allExpenses.filter(e => e.status === 'rejected').length;
+        }
+
+        // ── USERS ───────────────────────────────────────────────
+        async function loadUsers() {
+            try { const d = await API.listUsers(); allUsers = d.users || []; renderUsers(); } catch (e) { }
+        }
+        async function loadManagers() {
+            try { const d = await API.listManagers(); allManagers = d.managers || []; } catch (e) { }
+        }
+
+        function filterUsers(f, el) {
+            currentFilter = f;
+            document.querySelectorAll('#panel-users .tab-pill').forEach(b => b.classList.remove('active'));
+            if (el) el.classList.add('active');
+            renderUsers();
+        }
+
+        function roleBadge(role, is_head) {
+            const map = { admin: '🟡 Admin', manager: '🟣 Manager', employee: '🔵 Employee' };
+            let b = `<span class="badge badge-role">${map[role] || role}</span>`;
+            if (is_head) b += '<span class="head-badge">⭐ HEAD</span>';
+            return b;
+        }
+
+        function avatarClass(role) { return role === 'admin' ? 'av-adm' : role === 'manager' ? 'av-mgr' : 'av-emp'; }
+
+        function renderUsers() {
+            const c = document.getElementById('usersContainer');
+            let list = allUsers;
+            if (currentFilter === 'employee') list = allUsers.filter(u => u.role === 'employee');
+            else if (currentFilter === 'manager') list = allUsers.filter(u => u.role === 'manager');
+
+            if (!list.length) {
+                const msg = currentFilter === 'all' ? 'No users yet. Share the company code so employees & managers can register.' : `No ${currentFilter}s yet.`;
+                c.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><h3>${msg}</h3></div>`;
+                return;
+            }
+
+            c.innerHTML = list.map(u => `
+        <div class="user-card">
+            <div class="user-card-top">
+                <div style="display:flex;align-items:center;gap:.75rem;flex:1;">
+                    <div class="user-avatar-sm ${avatarClass(u.role)}">${u.name[0].toUpperCase()}</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:600;">${u.name} ${roleBadge(u.role, u.is_head_manager)}</div>
+                        <div class="text-sm text-muted">${u.email}</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;">
+                    ${u.role === 'manager' ? `
+                        <button class="btn btn-ghost btn-sm text-warning" onclick="toggleHeadManager(${u.id},${u.is_head_manager})" title="${u.is_head_manager ? 'Remove head manager' : 'Set as head manager'}">
+                            ${u.is_head_manager ? '⭐ Remove Head' : '⭐ Set Head'}
+                        </button>`: ''}
+                    ${u.role === 'employee' ? `<button class="btn btn-ghost btn-sm" onclick="openAssignModal(${u.id},'${u.name.replace("'", "\\'")}',${u.manager_id || 'null'})">👔 Assign Mgr</button>` : ''}
+                    <button class="btn btn-ghost btn-sm" onclick="openEditModal(${u.id})">✏️ Edit</button>
+                    ${u.id !== user.id ? `<button class="btn btn-ghost btn-sm text-danger" onclick="deactivateUser(${u.id})">🗑</button>` : ''}
+                </div>
+            </div>
+            <div class="user-meta">
+                ${u.phone ? `<span class="meta-chip">📱 ${u.phone}</span>` : ''}
+                ${u.department ? `<span class="meta-chip">🏢 ${u.department}</span>` : ''}
+                ${u.manager_name ? `<span class="meta-chip">👔 Reports to: ${u.manager_name}</span>` : ''}
+                <span class="meta-chip ${u.is_active ? '' : 'text-danger'}">${u.is_active ? '✅ Active' : '❌ Inactive'}</span>
+            </div>
+        </div>`).join('');
+        }
+
+        // ── ASSIGN MANAGER ──────────────────────────────────────
+        function openAssignModal(userId, empName, currentMgrId) {
+            assigningUserId = userId;
+            document.getElementById('assignEmpName').textContent = empName;
+            const sel = document.getElementById('assignManagerSelect');
+            sel.innerHTML = '<option value="">No Manager</option>' +
+                allManagers.map(m => `<option value="${m.id}" ${m.id === currentMgrId ? 'selected' : ''}>${m.name}${m.is_head_manager ? ' ⭐' : ''} (${m.department || 'Manager'})</option>`).join('');
+            UI.showModal('assignModal');
+        }
+
+        async function confirmAssign() {
+            const mgrId = document.getElementById('assignManagerSelect').value || null;
+            try {
+                await API.assignManager(assigningUserId, mgrId ? parseInt(mgrId) : null);
+                UI.success('Manager assigned!');
+                UI.hideModal('assignModal');
+                await loadUsers();
+            } catch (e) { UI.error(e.message); }
+        }
+
+        // ── HEAD MANAGER ────────────────────────────────────────
+        async function toggleHeadManager(userId, isCurrentlyHead) {
+            const newVal = !isCurrentlyHead;
+            const label = newVal ? 'Set as Head Manager?' : 'Remove Head Manager status?';
+            if (!confirm(label)) return;
+            try {
+                await API.setHeadManager(userId, newVal);
+                UI.success(newVal ? '⭐ Head Manager set!' : 'Head Manager removed');
+                await loadManagers();
+                await loadUsers();
+            } catch (e) { UI.error(e.message); }
+        }
+
+        // ── ADD/EDIT USER (admin-created) ───────────────────────
+        function toggleMgrField() {
+            document.getElementById('mgrFieldGroup').style.display =
+                document.getElementById('uRole').value === 'employee' ? '' : 'none';
+        }
+
+        function openAddUserModal() {
+            document.getElementById('addUserTitle').textContent = 'Add New User';
+            document.getElementById('editUserId').value = '';
+            document.getElementById('uName').value = ''; document.getElementById('uPhone').value = '';
+            document.getElementById('uEmail').value = ''; document.getElementById('uPassword').value = '';
+            document.getElementById('uRole').value = 'employee'; document.getElementById('uDept').value = '';
+            document.getElementById('pwGroup').querySelector('label').textContent = 'Password *';
+            populateMgrSelect(null); toggleMgrField();
+            UI.showModal('addUserModal');
+        }
+
+        function openEditModal(id) {
+            const u = allUsers.find(x => x.id === id); if (!u) return;
+            document.getElementById('addUserTitle').textContent = 'Edit User';
+            document.getElementById('editUserId').value = u.id;
+            document.getElementById('uName').value = u.name;
+            document.getElementById('uPhone').value = u.phone || '';
+            document.getElementById('uEmail').value = u.email;
+            document.getElementById('uPassword').value = '';
+            document.getElementById('uRole').value = u.role;
+            document.getElementById('uDept').value = u.department || '';
+            document.getElementById('pwGroup').querySelector('label').textContent = 'New Password (blank = keep)';
+            populateMgrSelect(u.manager_id); toggleMgrField();
+            UI.showModal('addUserModal');
+        }
+
+        function populateMgrSelect(currentMgrId) {
+            const sel = document.getElementById('uManager');
+            sel.innerHTML = '<option value="">No Manager</option>' +
+                allManagers.map(m => `<option value="${m.id}" ${m.id === currentMgrId ? 'selected' : ''}>${m.name}</option>`).join('');
+        }
+
+        async function saveUser() {
+            const editId = document.getElementById('editUserId').value;
+            const name = document.getElementById('uName').value.trim();
+            const email = document.getElementById('uEmail').value.trim();
+            const pw = document.getElementById('uPassword').value;
+            const role = document.getElementById('uRole').value;
+            const mgrId = document.getElementById('uManager').value || null;
+            const dept = document.getElementById('uDept').value;
+            const phone = document.getElementById('uPhone').value.trim();
+            if (!name || !email) { UI.warning('Name and email required'); return; }
+            try {
+                if (editId) {
+                    const p = { name, role, department: dept, phone, manager_id: mgrId ? parseInt(mgrId) : null };
+                    if (pw) p.password = pw;
+                    await API.updateUser(editId, p);
+                    UI.success('User updated!');
+                } else {
+                    if (!pw || pw.length < 6) { UI.warning('Password must be ≥ 6 characters'); return; }
+                    await API.createUser({ name, email, password: pw, role, department: dept, phone, manager_id: mgrId ? parseInt(mgrId) : null });
+                    UI.success('User created!');
+                }
+                UI.hideModal('addUserModal');
+                await loadManagers(); await loadUsers(); updateStats();
+            } catch (e) { UI.error(e.message); }
+        }
+
+        async function deactivateUser(id) {
+            if (!confirm('Deactivate this user?')) return;
+            try { await API.deleteUser(id); UI.success('Deactivated'); await loadUsers(); updateStats(); }
+            catch (e) { UI.error(e.message); }
+        }
+
+        // ── RULES ───────────────────────────────────────────────
+        async function loadRules() {
+            try { const d = await API.listRules(); allRules = d.rules || []; renderRules(); } catch (e) { }
+        }
+        function renderRules() {
+            const c = document.getElementById('rulesContainer');
+            if (!allRules.length) { c.innerHTML = `<div class="empty-state"><div class="empty-icon">⚙️</div><h3>No rules yet</h3><p>Create rules to define how expenses are approved.</p></div>`; return; }
+            c.innerHTML = allRules.map(r => `
+        <div class="card mb-2">
+            <div class="card-header">
+                <div><h3>${r.name}</h3>
+                <p class="text-sm text-muted mt-1">${UI.formatCurrency(r.min_amount || 0)} – ${r.max_amount ? UI.formatCurrency(r.max_amount) : '∞'} · ${r.is_sequential ? 'Sequential' : 'Parallel'} · ${r.min_percentage}% required</p></div>
+                <div class="d-flex gap-1">
+                    <button class="btn btn-ghost btn-sm" onclick="openEditRuleModal(${r.id})">Edit</button>
+                    <button class="btn btn-ghost btn-sm text-danger" onclick="deleteRule(${r.id})">Delete</button>
+                </div>
+            </div>
+        </div>`).join('');
+        }
+        function openCreateRuleModal() {
+            document.getElementById('ruleModalTitle').textContent = 'Create Approval Rule';
+            document.getElementById('editRuleId').value = ''; document.getElementById('ruleName').value = '';
+            document.getElementById('ruleMin').value = '0'; document.getElementById('ruleMax').value = '';
+            document.getElementById('rulePct').value = '100'; document.getElementById('ruleMode').value = 'true';
+            document.getElementById('ruleMgrReq').checked = true; document.getElementById('ruleAutoApprove').checked = false;
+            const s = document.getElementById('ruleSpecial');
+            s.innerHTML = '<option value="">None</option>' + allManagers.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+            UI.showModal('ruleModal');
+        }
+        function openEditRuleModal(id) {
+            const r = allRules.find(x => x.id === id); if (!r) return;
+            document.getElementById('ruleModalTitle').textContent = 'Edit Rule';
+            document.getElementById('editRuleId').value = r.id;
+            document.getElementById('ruleName').value = r.name;
+            document.getElementById('ruleMin').value = r.min_amount || 0;
+            document.getElementById('ruleMax').value = r.max_amount || '';
+            document.getElementById('rulePct').value = r.min_percentage || 100;
+            document.getElementById('ruleMode').value = r.is_sequential ? 'true' : 'false';
+            document.getElementById('ruleMgrReq').checked = !!r.is_manager_required;
+            document.getElementById('ruleAutoApprove').checked = !!r.special_approver_auto_approve;
+            const s = document.getElementById('ruleSpecial');
+            s.innerHTML = '<option value="">None</option>' + allManagers.map(m => `<option value="${m.id}" ${r.special_approver_id === m.id ? 'selected' : ''}>${m.name}</option>`).join('');
+            UI.showModal('ruleModal');
+        }
+        async function saveRule() {
+            const id = document.getElementById('editRuleId').value;
+            const p = {
+                name: document.getElementById('ruleName').value.trim(),
+                min_amount: parseFloat(document.getElementById('ruleMin').value) || 0,
+                max_amount: document.getElementById('ruleMax').value ? parseFloat(document.getElementById('ruleMax').value) : null,
+                min_percentage: parseFloat(document.getElementById('rulePct').value) || 100,
+                is_sequential: document.getElementById('ruleMode').value === 'true',
+                is_manager_required: document.getElementById('ruleMgrReq').checked,
+                special_approver_id: document.getElementById('ruleSpecial').value ? parseInt(document.getElementById('ruleSpecial').value) : null,
+                special_approver_auto_approve: document.getElementById('ruleAutoApprove').checked
+            };
+            if (!p.name) { UI.warning('Name required'); return; }
+            try { if (id) await API.updateRule(id, p); else await API.createRule(p); UI.success('Rule saved!'); UI.hideModal('ruleModal'); loadRules(); }
+            catch (e) { UI.error(e.message); }
+        }
+        async function deleteRule(id) { if (!confirm('Delete rule?')) return; try { await API.deleteRule(id); UI.success('Deleted'); loadRules(); } catch (e) { UI.error(e.message); } }
+
+        // ── EXPENSES ────────────────────────────────────────────
+        async function loadExpenses() {
+            try { const d = await API.listExpenses(); allExpenses = d.expenses || []; updateStats(); filterExpenses(); } catch (e) { }
+        }
+        function filterExpenses() {
+            const f = document.getElementById('expStatusFilter').value;
+            const list = f ? allExpenses.filter(e => e.status === f) : allExpenses;
+            const c = document.getElementById('expensesTableContainer');
+            if (!list.length) { c.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>No expenses found</h3></div>`; return; }
+            c.innerHTML = `<table class="data-table"><thead><tr><th>Employee</th><th>Category</th><th>Amount</th><th>Converted</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        ${list.map(e => `<tr>
+            <td class="fw-600">${e.employee_name}</td>
+            <td><span class="badge badge-role">${e.category}</span></td>
+            <td class="fw-600">${UI.formatCurrency(e.amount, e.currency)}</td>
+            <td class="text-muted text-sm">${e.converted_amount ? UI.formatCurrency(e.converted_amount, e.company_currency) : '—'}</td>
+            <td class="text-sm text-muted">${UI.formatDate(e.expense_date)}</td>
+            <td><span class="expense-badge eb-${e.status === 'waiting_approval' ? 'pending' : e.status}">${{ draft: 'Draft', waiting_approval: '⏳ Pending', approved: '✅ Approved', rejected: '❌ Rejected' }[e.status] || e.status}</span></td>
+            <td><div class="d-flex gap-1">
+                <button class="btn btn-ghost btn-sm" onclick="viewExpense(${e.id})">View</button>
+                ${e.status === 'waiting_approval' ? `<button class="btn btn-ghost btn-sm text-warning" onclick="adminOverride(${e.id})">Override</button>` : ''}
+            </div></td></tr>`).join('')}
+    </tbody></table>`;
+        }
+
+        async function viewExpense(id) {
+            UI.showModal('expDetailModal');
+            document.getElementById('expDetailContent').innerHTML = '<div class="page-loader"><div class="spinner"></div></div>';
+            document.getElementById('expDetailActions').innerHTML = '';
+            try {
+                const d = await API.getExpense(id); const e = d.expense; const hist = e.approval_history || [];
+                document.getElementById('expDetailContent').innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+                <div><div class="text-xs text-muted mb-1">Employee</div><div class="fw-600">${e.employee_name}</div></div>
+                <div><div class="text-xs text-muted mb-1">Amount</div><div class="fw-600">${UI.formatCurrency(e.amount, e.currency)}</div></div>
+                <div><div class="text-xs text-muted mb-1">Category</div><div>${e.category}</div></div>
+                <div><div class="text-xs text-muted mb-1">Date</div><div>${UI.formatDate(e.expense_date)}</div></div>
+            </div>
+            ${e.description ? `<p class="text-sm mb-2"><b>Description:</b> ${e.description}</p>` : ''}
+            <div style="border-top:1px solid var(--border-secondary);padding-top:1rem;margin-top:1rem;">
+                <div class="text-xs text-muted mb-2 fw-600" style="text-transform:uppercase;">Approval History</div>
+                ${hist.length ? hist.map(h => `<div style="display:flex;gap:.75rem;margin-bottom:.75rem;padding:.75rem;background:var(--bg-tertiary);border-radius:8px;">
+                    <div style="width:8px;height:8px;border-radius:50%;background:${h.status === 'approved' ? '#22c55e' : h.status === 'rejected' ? '#ef4444' : '#eab308'};margin-top:5px;flex-shrink:0;"></div>
+                    <div><div class="fw-600 text-sm">${h.approver_name} <span class="text-xs text-muted">(Step ${h.sequence_order})</span></div>
+                    <span class="expense-badge eb-${h.status}">${h.status}</span>${h.comments ? `<span class="text-sm text-muted"> – ${h.comments}</span>` : ''}</div>
+                </div>`).join('') : '<p class="text-sm text-muted">No history yet.</p>'}
+            </div>`;
+                if (e.status === 'waiting_approval') {
+                    document.getElementById('expDetailActions').innerHTML = `
+                <button class="btn btn-success btn-sm" onclick="adminOverride(${e.id},'approve')">✅ Approve</button>
+                <button class="btn btn-danger btn-sm" onclick="adminOverride(${e.id},'reject')">❌ Reject</button>`;
+                }
+            } catch (err) { document.getElementById('expDetailContent').innerHTML = `<p class="text-danger">${err.message}</p>`; }
+        }
+
+        async function adminOverride(id, action) {
+            const a = action || prompt('Type "approve" or "reject":');
+            if (!a || !['approve', 'reject'].includes(a)) return;
+            const comments = prompt('Comment (optional):') || 'Admin override';
+            try { await API.overrideApproval(id, { action: a, comments }); UI.success(`Expense ${a}d!`); UI.hideModal('expDetailModal'); await loadExpenses(); }
+            catch (e) { UI.error(e.message); }
+        }
+
+        // ── INIT ─────────────────────────────────────────────────
+        (async () => {
+            await loadCompanyCode();
+            await loadManagers();
+            await Promise.all([loadUsers(), loadExpenses()]);
+            updateStats();
+        })();
+    </script>
+</body>
+
+</html>

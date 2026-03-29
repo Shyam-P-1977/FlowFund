@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your FlowFund account and start managing expense reimbursements.">
+    <title>Sign Up – FlowFund</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .currency-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            color: #a5b4fc;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 6px;
+        }
+
+        .setup-note {
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            color: #86efac;
+            line-height: 1.5;
+        }
+
+        .auth-page {
+            background: url('assets/login-bg.png') no-repeat center center/cover;
+            position: relative;
+        }
+
+        .auth-page::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(2px);
+            pointer-events: none;
+        }
+
+        .auth-container {
+            position: relative;
+            z-index: 2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-logo">
+                    <div class="logo-icon"><img src="logo.jpeg" alt="FlowFund Logo"
+                            style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;"></div>
+                    <h1>FlowFund</h1>
+                    <p>Create your company workspace</p>
+                </div>
+
+                <div class="setup-note">
+                    Signing up creates your <strong>Company</strong> + <strong>Admin account</strong> automatically —
+                    with your country's currency pre-set.
+                </div>
+
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="companyName">Company Name</label>
+                        <input type="text" id="companyName" class="form-control" placeholder="Acme Corp (optional)">
+                        <span class="form-hint">Leave blank to use your name</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name">Your Full Name *</label>
+                        <input type="text" id="name" class="form-control" placeholder="John Doe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" class="form-control" placeholder="john@company.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password *</label>
+                        <input type="password" id="password" class="form-control" placeholder="Min 6 characters"
+                            required minlength="6">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="country">Country *</label>
+                        <select id="country" class="form-control" required>
+                            <option value="">Select your country</option>
+                        </select>
+                        <div id="currencyHint"></div>
+                    </div>
+
+                    <button type="submit" id="signupBtn" class="btn btn-primary btn-block btn-lg mt-2">
+                        Create Company & Account
+                    </button>
+                </form>
+
+                <p class="text-center text-muted text-sm mt-3">
+                    Already have an account? <a href="login.html">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        // Redirect if already logged in
+        if (API.isAuthenticated()) {
+            const user = API.getUser();
+            if (user && user.role === 'admin') window.location.href = 'admin_dashboard.html';
+            else if (user && user.role === 'manager') window.location.href = 'manager_dashboard.html';
+            else window.location.href = 'employee_dashboard.html';
+        }
+
+        let countriesData = [];
+
+        // Load countries
+        async function loadCountries() {
+            try {
+                const data = await API.getCountries();
+                countriesData = data.countries || [];
+                const select = document.getElementById('country');
+                const seen = new Set();
+                countriesData.forEach(c => {
+                    if (!seen.has(c.country)) {
+                        seen.add(c.country);
+                        const opt = document.createElement('option');
+                        opt.value = c.country;
+                        opt.textContent = c.country;
+                        select.appendChild(opt);
+                    }
+                });
+            } catch (err) {
+                const fallback = ['United States', 'United Kingdom', 'India', 'Canada', 'Australia', 'Germany', 'Japan', 'France'];
+                const select = document.getElementById('country');
+                fallback.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c; opt.textContent = c;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        // Show currency pill when country changes
+        document.getElementById('country').addEventListener('change', function () {
+            const match = countriesData.find(c => c.country === this.value);
+            const hint = document.getElementById('currencyHint');
+            if (match) {
+                hint.innerHTML = `<span class="currency-pill">💱 Company currency will be: ${match.currency_code} (${match.currency_symbol})</span>`;
+            } else {
+                hint.innerHTML = '';
+            }
+        });
+
+        // Handle signup
+        document.getElementById('signupForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('signupBtn');
+            UI.setButtonLoading(btn, true);
+
+            try {
+                const data = await API.signup({
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                    country: document.getElementById('country').value,
+                    company_name: document.getElementById('companyName').value.trim()
+                });
+
+                API.setToken(data.token);
+                API.setUser(data.user);
+
+                const currency = data.user.currency || '';
+                UI.success(`Company created with ${currency} currency! Welcome aboard 🎉`);
+
+                setTimeout(() => {
+                    window.location.href = 'admin_dashboard.html';
+                }, 1200);
+            } catch (err) {
+                UI.error(err.message);
+            } finally {
+                UI.setButtonLoading(btn, false);
+            }
+        });
+
+        loadCountries();
+    </script>
+</body>
+
+</html>

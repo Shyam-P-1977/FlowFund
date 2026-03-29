@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Dashboard – FlowFund</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .app-layout {
+            background: url('assets/manager-bg.png') no-repeat center center/cover fixed;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        .main-content {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .card,
+        .stat-card {
+            background: rgba(30, 41, 59, 0.8) !important;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .si-yellow {
+            background: rgba(234, 179, 8, .15);
+        }
+
+        .si-green {
+            background: rgba(34, 197, 94, .15);
+        }
+
+        .si-red {
+            background: rgba(239, 68, 68, .15);
+        }
+
+        .stat-val {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-lbl {
+            font-size: .75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .approval-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: .75rem;
+            transition: border-color .2s;
+        }
+
+        .approval-card:hover {
+            border-color: var(--primary-500);
+        }
+
+        .approval-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .approval-meta {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: .75rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meta-label {
+            font-size: .7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .meta-val {
+            font-size: .9rem;
+            font-weight: 500;
+        }
+
+        .approval-actions {
+            display: flex;
+            gap: .5rem;
+            margin-top: 1rem;
+        }
+
+        .expense-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-weight: 500;
+        }
+
+        .eb-pending {
+            background: rgba(234, 179, 8, .15);
+            color: #eab308;
+        }
+
+        .eb-approved {
+            background: rgba(34, 197, 94, .15);
+            color: #22c55e;
+        }
+
+        .eb-rejected {
+            background: rgba(239, 68, 68, .15);
+            color: #ef4444;
+        }
+
+        .eb-draft {
+            background: rgba(148, 163, 184, .15);
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo"><img src="logo.jpeg" alt="FlowFund Logo"
+                        style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;"></div>
+                <span class="sidebar-brand">FlowFund</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Manager</div>
+                    <a href="#" class="nav-item active" onclick="showSection('pending')">
+                        <span class="nav-icon">⏳</span> Pending Approvals
+                        <span class="nav-badge" id="pendingBadge" style="display:none;">0</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="showSection('history')">
+                        <span class="nav-icon">📋</span> Team History
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="user-avatar" id="userAvatar">M</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Manager</div>
+                        <div class="user-role">Manager</div>
+                    </div>
+                </div>
+                <a href="#" class="nav-item text-danger" id="logoutBtn" style="margin-top:8px;">
+                    <span class="nav-icon">🚪</span> Logout
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+                    <h1>Manager Dashboard</h1>
+                    <div class="header-subtitle">Review &amp; approve team expenses</div>
+                </div>
+            </header>
+
+            <div class="content-body">
+
+                <!-- Stat Row -->
+                <div class="stat-row">
+                    <div class="stat-card">
+                        <div class="stat-icon-box si-yellow">⏳</div>
+                        <div>
+                            <div class="stat-val" id="statPending">—</div>
+                            <div class="stat-lbl">Awaiting Your Action</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-box si-green">✅</div>
+                        <div>
+                            <div class="stat-val" id="statApproved">—</div>
+                            <div class="stat-lbl">Approved This Month</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-box si-red">❌</div>
+                        <div>
+                            <div class="stat-val" id="statRejected">—</div>
+                            <div class="stat-lbl">Rejected This Month</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Approvals Section -->
+                <div id="section-pending">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                        <h3 style="font-size:1rem;font-weight:600;">⏳ Pending Your Approval</h3>
+                    </div>
+                    <div id="pendingContainer">
+                        <div class="page-loader">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team History Section -->
+                <div id="section-history" style="display:none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                        <h3 style="font-size:1rem;font-weight:600;">📋 Team Expense History</h3>
+                        <select id="histFilter" class="form-control" style="width:auto;" onchange="renderHistory()">
+                            <option value="">All Status</option>
+                            <option value="waiting_approval">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="draft">Draft</option>
+                        </select>
+                    </div>
+                    <div class="card">
+                        <div class="card-body" style="padding:0;">
+                            <div id="historyContainer">
+                                <div class="page-loader">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Comments Modal -->
+    <div class="modal-backdrop" id="commentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="commentModalTitle">Add Comment</h3>
+                <button class="modal-close" onclick="UI.hideModal('commentModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="commentExpSummary"
+                    style="background:var(--bg-tertiary);padding:1rem;border-radius:8px;margin-bottom:1rem;"></div>
+                <div class="form-group">
+                    <label for="commentText">Comments</label>
+                    <textarea id="commentText" class="form-control" rows="4"
+                        placeholder="Provide reason or feedback..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="UI.hideModal('commentModal')">Cancel</button>
+                <button class="btn btn-danger" id="btnReject" onclick="submitAction('reject')">❌ Reject</button>
+                <button class="btn btn-success" id="btnApprove" onclick="submitAction('approve')">✅ Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense Detail Modal -->
+    <div class="modal-backdrop" id="detailModal">
+        <div class="modal" style="max-width:640px;">
+            <div class="modal-header">
+                <h3>Expense Details</h3>
+                <button class="modal-close" onclick="UI.hideModal('detailModal')">✕</button>
+            </div>
+            <div class="modal-body" id="detailContent"></div>
+            <div class="modal-footer"><button class="btn btn-outline"
+                    onclick="UI.hideModal('detailModal')">Close</button></div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        if (!UI.requireAuth()) throw new Error('Not auth');
+        const user = API.getUser();
+        if (user.role !== 'manager' && user.role !== 'admin') { window.location.href = 'login.html'; throw new Error(); }
+
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userAvatar').textContent = user.name[0].toUpperCase();
+        if (user.is_head_manager) {
+            document.getElementById('userName').insertAdjacentHTML('afterend',
+                '<span style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;">⭐ HEAD</span>');
+        }
+        document.getElementById('logoutBtn').addEventListener('click', e => { e.preventDefault(); API.clearAuth(); window.location.href = 'login.html'; });
+
+        let pendingApprovals = [], teamExpenses = [], currentExpenseId = null, currentAction = null;
+
+        function statusBadge(s) {
+            const map = { draft: 'eb-draft', waiting_approval: 'eb-pending', approved: 'eb-approved', rejected: 'eb-rejected' };
+            const labels = { draft: 'Draft', waiting_approval: '⏳ Pending', approved: '✅ Approved', rejected: '❌ Rejected' };
+            return `<span class="expense-badge ${map[s] || 'eb-draft'}">${labels[s] || s}</span>`;
+        }
+
+        function showSection(sec) {
+            document.getElementById('section-pending').style.display = sec === 'pending' ? '' : 'none';
+            document.getElementById('section-history').style.display = sec === 'history' ? '' : 'none';
+            document.querySelectorAll('.nav-item').forEach((el, i) => el.classList.toggle('active', i === ({ pending: 0, history: 1 }[sec])));
+            if (sec === 'history') loadTeamHistory();
+        }
+
+        // ── LOAD PENDING ───────────────────────────────────────
+        async function loadPending() {
+            try {
+                const d = await API.getPendingApprovals();
+                pendingApprovals = d.approvals || [];
+                const badge = document.getElementById('pendingBadge');
+                badge.textContent = pendingApprovals.length;
+                badge.style.display = pendingApprovals.length ? '' : 'none';
+                document.getElementById('statPending').textContent = pendingApprovals.length;
+                renderPending();
+            } catch (e) { }
+        }
+
+        function renderPending() {
+            const c = document.getElementById('pendingContainer');
+            if (!pendingApprovals.length) {
+                c.innerHTML = `<div class="empty-state"><div class="empty-icon">🎉</div><h3>All caught up!</h3><p>No expenses awaiting your approval.</p></div>`;
+                return;
+            }
+            c.innerHTML = pendingApprovals.map(a => `
+        <div class="approval-card">
+            <div class="approval-card-top">
+                <div>
+                    <div class="fw-600">${a.employee_name}</div>
+                    <div class="text-sm text-muted">${a.description || 'No description'}</div>
+                </div>
+                <span class="expense-badge eb-pending">⏳ Step #${a.sequence_order}</span>
+            </div>
+            <div class="approval-meta">
+                <div class="meta-item"><span class="meta-label">Amount</span><span class="meta-val fw-600">${UI.formatCurrency(a.amount, a.currency)}</span></div>
+                <div class="meta-item"><span class="meta-label">Converted</span><span class="meta-val">${a.converted_amount ? UI.formatCurrency(a.converted_amount, a.company_currency) : '—'}</span></div>
+                <div class="meta-item"><span class="meta-label">Category</span><span class="meta-val">${a.category}</span></div>
+                <div class="meta-item"><span class="meta-label">Date</span><span class="meta-val">${UI.formatDate(a.expense_date)}</span></div>
+                <div class="meta-item"><span class="meta-label">Paid By</span><span class="meta-val" style="text-transform:capitalize;">${a.paid_by || '—'}</span></div>
+            </div>
+            <div class="approval-actions">
+                <button class="btn btn-success btn-sm" onclick="openCommentModal(${a.expense_id}, 'approve', '${a.employee_name}', '${UI.formatCurrency(a.amount, a.currency)}')">✅ Approve</button>
+                <button class="btn btn-danger btn-sm" onclick="openCommentModal(${a.expense_id}, 'reject', '${a.employee_name}', '${UI.formatCurrency(a.amount, a.currency)}')">❌ Reject</button>
+                <button class="btn btn-ghost btn-sm" onclick="viewDetail(${a.expense_id})">🔍 View Details</button>
+            </div>
+        </div>
+    `).join('');
+        }
+
+        // ── COMMENT MODAL ──────────────────────────────────────
+        function openCommentModal(expId, action, empName, amount) {
+            currentExpenseId = expId;
+            currentAction = action;
+            document.getElementById('commentModalTitle').textContent = action === 'approve' ? '✅ Approve Expense' : '❌ Reject Expense';
+            document.getElementById('commentExpSummary').innerHTML = `<b>${empName}</b> · ${amount}`;
+            document.getElementById('commentText').value = '';
+            document.getElementById('btnApprove').style.display = action === 'approve' ? '' : 'none';
+            document.getElementById('btnReject').style.display = action === 'reject' ? '' : 'none';
+            UI.showModal('commentModal');
+        }
+
+        async function submitAction(action) {
+            const comments = document.getElementById('commentText').value.trim();
+            if (action === 'reject' && !comments) { UI.warning('Please provide a reason for rejection'); return; }
+            const btn = document.getElementById(action === 'approve' ? 'btnApprove' : 'btnReject');
+            UI.setButtonLoading(btn, true);
+            try {
+                if (action === 'approve') await API.approveExpense(currentExpenseId, comments);
+                else await API.rejectExpense(currentExpenseId, comments);
+                UI.success(action === 'approve' ? 'Expense approved! ✅' : 'Expense rejected.');
+                UI.hideModal('commentModal');
+                await loadPending();
+                await loadTeamHistory();
+                updateStats();
+            } catch (err) { UI.error(err.message); }
+            finally { UI.setButtonLoading(btn, false); }
+        }
+
+        // ── TEAM HISTORY ───────────────────────────────────────
+        async function loadTeamHistory() {
+            try { const d = await API.listExpenses(); teamExpenses = d.expenses || []; updateStats(); renderHistory(); } catch (e) { }
+        }
+
+        function updateStats() {
+            document.getElementById('statApproved').textContent = teamExpenses.filter(e => e.status === 'approved').length;
+            document.getElementById('statRejected').textContent = teamExpenses.filter(e => e.status === 'rejected').length;
+        }
+
+        function renderHistory() {
+            const filter = document.getElementById('histFilter')?.value || '';
+            let list = filter ? teamExpenses.filter(e => e.status === filter) : teamExpenses;
+            const c = document.getElementById('historyContainer');
+            if (!list.length) { c.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>No records</h3></div>`; return; }
+            c.innerHTML = `<table class="data-table"><thead><tr>
+        <th>Employee</th><th>Description</th><th>Amount</th><th>Category</th><th>Date</th><th>Status</th><th>Action</th>
+    </tr></thead><tbody>${list.map(e => `
+        <tr>
+            <td class="fw-600">${e.employee_name}</td>
+            <td class="text-sm">${e.description || '—'}</td>
+            <td class="fw-600">${UI.formatCurrency(e.amount, e.currency)}</td>
+            <td><span class="badge badge-role">${e.category}</span></td>
+            <td class="text-sm text-muted">${UI.formatDate(e.expense_date)}</td>
+            <td>${statusBadge(e.status)}</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="viewDetail(${e.id})">View</button></td>
+        </tr>`).join('')}</tbody></table>`;
+        }
+
+        // ── EXPENSE DETAIL ─────────────────────────────────────
+        async function viewDetail(id) {
+            UI.showModal('detailModal');
+            document.getElementById('detailContent').innerHTML = '<div class="page-loader"><div class="spinner"></div></div>';
+            try {
+                const d = await API.getExpense(id);
+                const e = d.expense;
+                const hist = e.approval_history || [];
+                document.getElementById('detailContent').innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+                <div><div class="text-xs text-muted mb-1">Employee</div><div class="fw-600">${e.employee_name}</div></div>
+                <div><div class="text-xs text-muted mb-1">Status</div>${statusBadge(e.status)}</div>
+                <div><div class="text-xs text-muted mb-1">Amount</div><div class="fw-600 text-lg">${UI.formatCurrency(e.amount, e.currency)}</div></div>
+                <div><div class="text-xs text-muted mb-1">Converted</div><div>${e.converted_amount ? UI.formatCurrency(e.converted_amount, e.company_currency) : '—'}</div></div>
+                <div><div class="text-xs text-muted mb-1">Category</div><div>${e.category}</div></div>
+                <div><div class="text-xs text-muted mb-1">Date</div><div>${UI.formatDate(e.expense_date)}</div></div>
+                <div><div class="text-xs text-muted mb-1">Paid By</div><div style="text-transform:capitalize;">${e.paid_by}</div></div>
+                <div><div class="text-xs text-muted mb-1">Description</div><div class="text-sm">${e.description || '—'}</div></div>
+            </div>
+            ${e.remarks ? `<p class="text-sm mb-2"><b>Remarks:</b> ${e.remarks}</p>` : ''}
+            <div style="border-top:1px solid var(--border-secondary);padding-top:1rem;margin-top:1rem;">
+                <div class="text-xs text-muted mb-2" style="text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Approval Trail</div>
+                ${hist.length ? hist.map(h => `
+                    <div style="display:flex;gap:.75rem;align-items:flex-start;margin-bottom:.75rem;padding:.75rem;background:var(--bg-tertiary);border-radius:8px;">
+                        <div style="width:10px;height:10px;border-radius:50%;margin-top:3px;flex-shrink:0;background:${h.status === 'approved' ? '#22c55e' : h.status === 'rejected' ? '#ef4444' : '#eab308'};"></div>
+                        <div>
+                            <div class="fw-600 text-sm">${h.approver_name} <span class="text-xs text-muted">(Step ${h.sequence_order})</span></div>
+                            <div class="mt-1">${statusBadge(h.status)} ${h.comments ? `<span class="text-sm text-muted">— "${h.comments}"</span>` : ''}</div>
+                        </div>
+                    </div>`).join('') : '<p class="text-sm text-muted">No approval actions yet.</p>'}
+            </div>`;
+            } catch (err) { document.getElementById('detailContent').innerHTML = `<p class="text-danger">${err.message}</p>`; }
+        }
+
+        // Init
+        loadPending();
+        loadTeamHistory();
+    </script>
+</body>
+
+</html>
