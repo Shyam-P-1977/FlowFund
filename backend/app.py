@@ -70,7 +70,7 @@ def create_app():
     return app
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Initialize database
     try:
         Database.init_db()
@@ -80,5 +80,5 @@ if __name__ == '__main__':
         print("The app will continue but database operations may fail.")
 
     app = create_app()
-    print("🚀 FlowFund server starting on http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    print("🚀 FlowFund server starting on http://0.0.0.0:10000")
+    app.run(host="0.0.0.0", port=10000)
