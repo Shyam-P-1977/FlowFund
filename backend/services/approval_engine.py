@@ -225,14 +225,20 @@ class ApprovalEngine:
             return {'status': 'approved', 'message': 'All approvals received'}
 
         # Sequential mode: advance to next step
-        if rule and rule.get('is_sequential'):
-            next_step = expense['current_approval_step'] + 1
-            Database.execute_query(
-                "UPDATE expenses SET current_approval_step = %s WHERE id = %s",
-                (next_step, expense_id),
-                commit=True
-            )
-            return {'status': 'pending', 'message': f'Advanced to step {next_step}'}
+        is_sequential = rule.get('is_sequential', True) if rule else True
+        if is_sequential:
+            current_step = expense['current_approval_step']
+            current_step_approvals = [a for a in all_approvals if a['sequence_order'] == current_step]
+            step_approved = all(a['status'] == 'approved' for a in current_step_approvals)
+            
+            if step_approved:
+                next_step = current_step + 1
+                Database.execute_query(
+                    "UPDATE expenses SET current_approval_step = %s WHERE id = %s",
+                    (next_step, expense_id),
+                    commit=True
+                )
+                return {'status': 'pending', 'message': f'Advanced to step {next_step}'}
 
         return {'status': 'pending', 'message': 'Awaiting more approvals'}
 

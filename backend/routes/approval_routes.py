@@ -46,21 +46,23 @@ def get_pending():
 @token_required
 @role_required('manager', 'admin')
 def approve_expense(expense_id):
-    """Approve an expense. Head manager approval is final."""
+    """Approve an expense. Head manager and Admin approval is final."""
     data = request.get_json() or {}
     comments = data.get('comments', '')
     user = request.current_user
     is_head = bool(user.get('is_head_manager'))
+    is_admin = user.get('role') == 'admin'
 
-    if is_head:
-        # Head manager direct final approval
+    if is_head or is_admin:
+        role_label = "Admin" if is_admin else "Head Manager"
+        # Admin or Head manager direct final approval
         Database.execute_query(
             "UPDATE expenses SET status = 'approved' WHERE id = %s",
             (expense_id,), commit=True)
         Database.execute_query(
             "UPDATE approvals SET status = 'approved', comments = %s WHERE expense_id = %s AND status = 'pending'",
-            (comments or 'Approved by Head Manager', expense_id), commit=True)
-        return jsonify({'status': 'approved', 'message': 'Directly approved by Head Manager'}), 200
+            (comments or f'Directly approved by {role_label}', expense_id), commit=True)
+        return jsonify({'status': 'approved', 'message': f'Directly approved by {role_label}'}), 200
 
     result = ApprovalEngine.process_approval(expense_id, user['id'], 'approved', comments)
     return jsonify(result), 200
@@ -79,14 +81,17 @@ def reject_expense(expense_id):
         return jsonify({'error': 'Comments are required when rejecting'}), 400
 
     is_head = bool(user.get('is_head_manager'))
-    if is_head:
+    is_admin = user.get('role') == 'admin'
+
+    if is_head or is_admin:
+        role_label = "Admin" if is_admin else "Head Manager"
         Database.execute_query(
             "UPDATE expenses SET status = 'rejected' WHERE id = %s",
             (expense_id,), commit=True)
         Database.execute_query(
             "UPDATE approvals SET status = 'rejected', comments = %s WHERE expense_id = %s AND status = 'pending'",
             (comments, expense_id), commit=True)
-        return jsonify({'status': 'rejected', 'message': 'Rejected by Head Manager'}), 200
+        return jsonify({'status': 'rejected', 'message': f'Rejected by {role_label}'}), 200
 
     result = ApprovalEngine.process_approval(expense_id, user['id'], 'rejected', comments)
     return jsonify(result), 200
