@@ -1,0 +1,3 @@
+[build]
+  # Tell Netlify that the website files to serve are in the "frontend" directory
+  publish = "frontend"
