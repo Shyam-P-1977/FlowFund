@@ -1,8 +1,8 @@
--- ReimburseFlow Database Schema
+-- FlowFund Database Schema
 -- MySQL
 
-CREATE DATABASE IF NOT EXISTS reimburseflow;
-USE reimburseflow;
+CREATE DATABASE IF NOT EXISTS FlowFund;
+USE FlowFund;
 
 -- Companies table
 CREATE TABLE IF NOT EXISTS companies (
